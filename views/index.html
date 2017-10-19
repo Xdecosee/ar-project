@@ -1,0 +1,511 @@
+<!-- This is a static file -->
+<!-- served from your routes in server.js -->
+
+<!-- You might want to try something fancier: -->
+<!-- html/nunjucks docs: https://mozilla.github.io/nunjucks/ -->
+<!-- pug: https://pugjs.org/ -->
+<!-- haml: http://haml.info/ -->
+<!-- hbs(handlebars): http://handlebarsjs.com/ -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ARProject</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <!-- SCRIPT: three.js library -->
+    <script src="https://rawgit.com/mrdoob/three.js/dev/build/three.js"></script>
+    <script src="https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fthree.min.js?1508448492664"></script>
+    <!-- SCRIPT: jsartookit -->
+    <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/vendor/jsartoolkit5/build/artoolkit.min.js"></script>
+    <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/vendor/jsartoolkit5/js/artoolkit.api.js"></script>
+    <!-- SCRIPT: include threex.artoolkit -->
+    <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-artoolkitsource.js"></script>
+    <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-artoolkitcontext.js"></script>
+    <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-arbasecontrols.js"></script>
+    <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-armarkercontrols.js"></script>
+ 
+    <script src="https://s3.amazonaws.com/stitch-sdks/js/library/stable/stitch.min.js"></script>
+    
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body  style="margin : 0px; overflow: hidden; font-family: Monospace;" onload="login()">
+  
+ <script>
+      
+      ///Section: Variables
+
+      
+      //Variables - Important Variables
+      // array of functions for the rendering loop
+      var onRenderFcts= [];
+      // init scene and camera
+      var scene	= new THREE.Scene();
+      var camera = new THREE.Camera();
+      // init renderer
+      var renderer	= new THREE.WebGLRenderer({
+        antialias	: true,
+        alpha: true
+      });
+   //  var controls;
+      var lastTimeMsec= null;
+      
+      //Variables - Crow Logo
+      var crowMap = new THREE.TextureLoader().load( "https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fcrow-logo.png?1508448491892" );
+      var crowMaterial = new THREE.SpriteMaterial( { map: crowMap, color: 0xffffff } );
+      var crowLogo = new THREE.Sprite( crowMaterial );
+      
+      //Variables - Attack Text
+      
+      var textMap = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FEmpty.png?1508449158024');
+      var textMaterial = new THREE.SpriteMaterial( { map: textMap, color: 0xffffff } );
+      var currentName = new THREE.Sprite( textMaterial );
+   
+      //Variables - Curve Path
+      var path, counter = 0;
+      var tangent = new THREE.Vector3();
+      var axis = new THREE.Vector3();
+      var up = new THREE.Vector3(0, 1, 0);
+      var numPoints = 50;
+      
+      //Variables - Curve Line (Derived from Curve Path)
+      var curveLineMat = new THREE.LineBasicMaterial({
+        color: 0x000000,
+       opacity: 0.0
+      });
+      var curveLineGeo = new THREE.Geometry();
+      var curveLine = new THREE.Line(curveLineGeo, curveLineMat);
+      
+      //Variables - AR Markers and their Pointers
+      var hiroPointer, kanjiPointer, hiroControls, kanjiControls;
+      var hiroMarker = new THREE.Group
+      var kanjiMarker = new THREE.Group
+      var pointerGeo	= new THREE.OctahedronGeometry( 0.1, 0 )
+      var pointerMat	= new THREE.MeshNormalMaterial({
+        wireframe: true
+      }); 
+      var midpoint = new THREE.Vector3();
+      
+      //Variables - Display of Spheres(Attack/Defense)
+      var sphere;
+      var arzone = new THREE.Group;
+      var queue = [];
+      var firstItem = [];
+      var defaultGeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+      var defaultMat = new THREE.MeshBasicMaterial({
+        color: 0xFFFFFF,
+
+      });
+      
+      const client = new stitch.StitchClient('arcrow-lkurz');
+      const db = client.service('mongodb', 'mongodb-atlas').db('ARDB');
+      
+      ///Section: WEBGLRENDERER
+      renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+      renderer.setSize( 640, 480);
+    //  renderer.domElement.style.position = 'absolute'
+      // renderer.domElement.style.top = '0px'
+      renderer.domElement.style.left = '0px' ;
+      document.body.appendChild( renderer.domElement );
+      //Actually no need trackball controls 
+    // controls = new THREE.TrackballControls(camera, renderer.domElement);
+      scene.add(camera);
+      
+      
+      ///Section: ARTOOLKITSOURCE
+      // to read from the webcam 
+      var arToolkitSource = new THREEx.ArToolkitSource({
+        sourceType : 'webcam',
+      })
+      arToolkitSource.init(function onReady(){
+        onResize()
+      })
+      // handle resize
+      window.addEventListener('resize', function(){
+        onResize()
+      })
+      function onResize(){
+        arToolkitSource.onResizeElement()	
+        arToolkitSource.copyElementSizeTo(renderer.domElement)	
+        if( arToolkitContext.arController !== null ){
+          arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas)	
+        }	
+      }
+
+
+      ///Section: ARTOOLKITCONTEXT
+      // create atToolkitContext
+      var arToolkitContext = new THREEx.ArToolkitContext({
+        cameraParametersUrl: 'https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fcamera_para.dat?1508448491282',
+        detectionMode: 'mono_and_matrix',
+        matrixCodeType: '3x3'
+      })
+      // initialize it
+      arToolkitContext.init(function onCompleted(){
+        // copy projection matrix to camera
+        camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
+      })
+      // update artoolkit on every frame
+      onRenderFcts.push(function(){
+        if( arToolkitSource.ready === false )	return
+        arToolkitContext.update( arToolkitSource.domElement )
+      })
+
+   
+      ///Queue
+      function popFromQueue(){
+       
+    
+        
+        if(queue.length > 0){
+          firstItem = queue[0];
+          
+          if(sphere.visible == false){
+            sphere.geometry = firstItem[0];
+            sphere.material = firstItem[1];
+            queue.shift();
+            sphere.visible = true;
+            
+            var loader = firstItem[2];
+            var textNewMaterial = new THREE.SpriteMaterial( { map: loader, color: 0xffffff } );
+           
+            loader.minFilter = THREE.LinearFilter
+            currentName.material = textNewMaterial;
+          
+          }
+        }
+        
+       
+        
+    
+      }
+      
+     function pushToQueue(type){
+        var newgeo;
+        var newmat;
+        var newload;
+          if(type == 1){
+
+            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0x00FF00,
+            });
+            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FNormal.png?1508449158564');
+        
+         
+
+            
+          }
+          else if(type == 2){
+
+            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0xFFFF00,
+            });
+            
+            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FReconn.png?1508449158363');
+          }
+          else if(type == 3){
+
+            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0xFFA500,
+            });
+            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FSQL.png?1508449160753');
+
+          }
+
+          else if(type == 4){
+
+            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0xFF69B4,
+            });
+            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FSem.png?1508449160246');
+
+          }
+          else if(type == 5){
+
+            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0x800080,
+
+            });
+           
+            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FCMD.png?1508449159842');
+          }
+          else if(type == 6){
+
+            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0x00FFFF,
+
+            });
+            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FRem.png?1508449158238');
+
+          }
+          else if(type == 7){
+
+            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0xA52A2A,
+
+            });
+            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FMani.png?1508449158746');
+
+          }
+          else if(type == 8){
+            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0x000080,
+
+            });
+         
+            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FPriv.png?1508449161292');
+          }
+          else if(type == 9){
+
+            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0xff0000,
+
+            });
+        
+            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FDirect.png?1508449159396');
+
+          }
+          else{
+            newgeo = new THREE.SphereGeometry(0, 0, 0);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0xFFFFFF,
+
+            });
+           newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FEmpty.png?1508449158024');
+            
+          }
+
+          queue.push([newgeo, newmat, newload]);
+ 
+      }
+
+
+      
+      ///Section: SPHERE MOVING ON CURVE
+      function moveSphere() {
+
+
+        if(sphere.visible == true){
+
+
+          if (counter <= 1) {
+
+
+            sphere.position.copy(path.getPointAt(counter));
+
+            tangent = path.getTangentAt(counter).normalize();
+
+            axis.crossVectors(up, tangent).normalize();
+
+            var radians = Math.acos(up.dot(tangent));
+
+            sphere.quaternion.setFromAxisAngle(axis, radians);
+
+            counter += 0.005
+          } 
+
+          else {
+            counter = 0;
+            sphere.visible = false;
+            textMap.minFilter = THREE.LinearFilter;
+            currentName.material = textMaterial;
+
+          }
+
+        }
+
+      }
+
+   
+      function login(){
+        client.login();
+        console.log("login success!");
+      }
+
+;(function(){
+
+        /// Section: HIRO MARKER
+      
+        scene.add(hiroMarker)
+       hiroControls = new THREEx.ArMarkerControls(arToolkitContext,hiroMarker, {
+          type : 'barcode',
+       //   patternUrl : 'https://rawgit.com/jeromeetienne/AR.js/master/data/data/patt.hiro',
+          barcodeValue : 3
+          
+        })
+        
+          var geometry1 = new THREE.RingGeometry( 0.5, 1, 8 );
+          var material1 = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide } );
+          var mesh1 = new THREE.Mesh( geometry1, material1 );
+          mesh1.rotation.x = Math.PI / 2;
+          mesh1.scale.set(0.4,0.4,0.4);
+          hiroMarker.add( mesh1 );
+
+ 
+
+        /// Section: KANJI MARKER
+  
+        scene.add(kanjiMarker)
+       kanjiControls = new THREEx.ArMarkerControls(arToolkitContext, kanjiMarker, {
+          type : 'barcode',
+       //   patternUrl : 'https://rawgit.com/jeromeetienne/AR.js/master/data/data/patt.kanji'
+          barcodeValue : 5
+          
+        })
+  
+        var geometry2 = new THREE.RingGeometry( 0.5, 1, 8 );
+        var material2 = new THREE.MeshBasicMaterial( { color: 0x0000ff, side: THREE.DoubleSide } );
+        var mesh2 = new THREE.Mesh( geometry2, material2);
+        mesh2.rotation.x = Math.PI / 2;
+        mesh2.scale.set(0.4,0.4,0.4);
+        kanjiMarker.add( mesh2 );
+
+ 
+
+
+
+})()
+
+
+
+
+
+;(function(){
+        
+       
+
+        /// Section: CROW LOGO
+        crowMap.minFilter = THREE.LinearFilter
+        crowLogo.scale.set(1, 0.40, 1);
+  
+        /// Section: Attack Text
+       textMap.minFilter = THREE.LinearFilter
+       currentName.scale.set(1, 0.2, 1);
+    
+    
+        /// Section : SPHERE OBJ
+        sphere = new THREE.Mesh(defaultGeo, defaultMat);
+        arzone.add(sphere);
+        sphere.visible = false;
+        setInterval(moveSphere, 10);
+  
+        
+        /// Section: CURVE OBJ
+        // curveLineGeo.dynamic = true;
+        scene.add(arzone)
+  
+        /// Section: OBJ DISPLAY
+        onRenderFcts.push(function(){
+       
+          popFromQueue();
+         
+       //   console.log(hiroControls.parameters.barcodeValue);
+          
+         if( hiroMarker.visible === true && kanjiMarker.visible === true ){
+         
+            ///Section: CURVE MIDPOINT
+            midpoint.addVectors(hiroMarker.position, kanjiMarker.position).multiplyScalar(1/2)
+            midpoint.y += 1;
+            
+            ///Section: CROW LOGO POSITION
+           crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
+           crowLogo.position.y += 0.30;
+            
+            ///Section: TEXT POSITION
+         
+           currentName.position.set(midpoint.x, midpoint.y, midpoint.z);
+          
+        
+        
+            ///Section: CURVE STUFF
+         
+            path = new THREE.QuadraticBezierCurve3(
+              hiroMarker.position,
+              midpoint,
+              kanjiMarker.position
+
+            );
+            curvePoints = path.getPoints(numPoints);
+            curveLineGeo = curveLine.geometry;
+            for (var i = 0; i < curvePoints.length; i++) {
+              //  curveLineGeo.vertices.push(curvePoints[i]);
+              curveLineGeo.vertices[i] = curvePoints[i];
+
+            }
+            curveLineGeo.verticesNeedUpdate = true
+            // curveLineGeo.computeBoundingSphere();
+            //  curveLineGeo.computeLineDistances();
+            //   path.updateMatrix;
+
+            
+            ///Section: ARZONE STUFF
+            arzone.add(curveLine)
+            arzone.add(crowLogo);
+         
+            arzone.add(currentName);
+            arzone.visible = true
+             
+           
+           
+            
+           
+
+         }
+        
+      
+         else{
+
+           arzone.visible = false
+
+         }
+        })
+})()
+
+      /// Section: Render the scene
+      onRenderFcts.push(function(){
+        renderer.render( scene, camera );
+      })
+
+
+      ///Section: Run the rendering loop
+    
+      requestAnimationFrame(function animate(nowMsec){
+        
+      //  controls.update();
+      
+      
+
+        // keep looping
+        requestAnimationFrame( animate );
+        // measure time
+        lastTimeMsec	= lastTimeMsec || nowMsec-1000/60
+        var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec)
+        lastTimeMsec	= nowMsec
+        // call each update function
+        onRenderFcts.forEach(function(onRenderFct){
+          onRenderFct(deltaMsec/1000, nowMsec/1000)
+        })
+      })
+
+
+    </script>
+ 
+
+    <!-- Your web-app is https, so your scripts need to be too -->
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"
+            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
+            crossorigin="anonymous"></script>
+    <script src="/client.js"></script>
+
+  </body>
+</html>

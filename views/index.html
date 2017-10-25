@@ -488,11 +488,21 @@
           onRenderFct(deltaMsec/1000, nowMsec/1000)
         })
       })
-
+    
+   var socket = io.connect('http://127.0.0.1:4000');
    
      function getAction(){
-          var socket = io.connect('http://127.0.0.1:4000');
-       
+         
+         if(socket !== undefined){
+           
+                // Handle Output
+                socket.on('output', function(data){
+                   
+                       console.log(data);
+                    
+                });
+           
+         }
      }
     </script>
  

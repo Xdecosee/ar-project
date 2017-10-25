@@ -26,7 +26,7 @@ var listener = app.listen(process.env.PORT, function () {
 });
 
 
-/*mongo.connect('mongodb://Dashre:Xdeco1998@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,'+
+mongo.connect('mongodb://Dashre:Xdeco1998@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,'+
               'arproject-shard-00-02-cjsdl.mongodb.net:27017/test?ssl=true'+
               '&replicaSet=ARPROJECT-shard-0&authSource=admin', function(err, db){
     if(err){
@@ -54,5 +54,5 @@ var listener = app.listen(process.env.PORT, function () {
 
      });
 
-});*/
+});
 

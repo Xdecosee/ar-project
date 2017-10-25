@@ -25,20 +25,18 @@
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-artoolkitcontext.js"></script>
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-arbasecontrols.js"></script>
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-armarkercontrols.js"></script>
- 
-    <script src="https://s3.amazonaws.com/stitch-sdks/js/library/stable/stitch.min.js"></script>
-    
     <link rel="stylesheet" href="/style.css">
   </head>
-  <body  style="margin : 0px; overflow: hidden; font-family: Monospace;" onload="login()">
+  <body  style="margin : 0px; overflow: hidden; font-family: Monospace;">
   
+     <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
  <script>
       
       ///Section: Variables
 
-      
       //Variables - Important Variables
       // array of functions for the rendering loop
+   
       var onRenderFcts= [];
       // init scene and camera
       var scene	= new THREE.Scene();
@@ -98,8 +96,6 @@
 
       });
       
-      const client = new stitch.StitchClient('arcrow-lkurz');
-      const db = client.service('mongodb', 'mongodb-atlas').db('ARDB');
       
       ///Section: WEBGLRENDERER
       renderer.setClearColor(new THREE.Color('lightgrey'), 0)
@@ -327,10 +323,6 @@
       }
 
    
-      function login(){
-        client.login();
-        console.log("login success!");
-      }
 
 ;(function(){
 
@@ -482,7 +474,7 @@
       requestAnimationFrame(function animate(nowMsec){
         
       //  controls.update();
-      
+        getAction();
       
 
         // keep looping
@@ -497,7 +489,11 @@
         })
       })
 
-
+   
+     function getAction(){
+          var socket = io.connect('http://127.0.0.1:4000');
+       
+     }
     </script>
  
 
@@ -505,7 +501,6 @@
     <script src="https://code.jquery.com/jquery-2.2.1.min.js"
             integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
             crossorigin="anonymous"></script>
-    <script src="/client.js"></script>
 
   </body>
 </html>

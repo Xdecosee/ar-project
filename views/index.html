@@ -28,31 +28,10 @@
     <link rel="stylesheet" href="/style.css">
     
     
-     <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
-    
-    <!-- Your web-app is https, so your scripts need to be too -->
-    <script src="https://code.jquery.com/jquery-2.2.1.min.js"
-            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
-            crossorigin="anonymous"></script>
-    
-    
-    <script>
-      
-      $(function () {
-    
-              var socket = io();
-              socket.on('action', function(sphere){
-                 if (sphere != null){
-                   
-                  console.log(sphere.attackType);
-                  pushToQueue(sphere.attackType)
-                 }
-                
-              });
-      });
-    </script>
+  
   </head>
-  <body  style="margin : 0px; overflow: hidden; font-family: Monospace;">
+  <body  style="margin : 0px; overflow: hidden; font-family: Monospace;">   
+    <!-- Your web-app is https, so your scripts need to be too -->
   
  <script>
       
@@ -422,13 +401,13 @@
   
         /// Section: OBJ DISPLAY
         onRenderFcts.push(function(){
-       
           popFromQueue();
          
        //   console.log(hiroControls.parameters.barcodeValue);
           
          if( hiroMarker.visible === true && kanjiMarker.visible === true ){
-         
+
+           
             ///Section: CURVE MIDPOINT
             midpoint.addVectors(hiroMarker.position, kanjiMarker.position).multiplyScalar(1/2)
             midpoint.y += 1;
@@ -499,8 +478,8 @@
         
       //  controls.update();
    
-      
-
+       
+ 
         // keep looping
         requestAnimationFrame( animate );
         // measure time
@@ -513,10 +492,16 @@
         })
       })
       
+ 
         
  </script>
  
-
+  
+    
+      <script src="https://code.jquery.com/jquery-2.2.1.min.js"
+            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
+            crossorigin="anonymous"></script>
+   
  
 
   </body>

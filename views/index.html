@@ -26,10 +26,34 @@
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-arbasecontrols.js"></script>
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-armarkercontrols.js"></script>
     <link rel="stylesheet" href="/style.css">
+    
+    
+     <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
+    
+    <!-- Your web-app is https, so your scripts need to be too -->
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"
+            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
+            crossorigin="anonymous"></script>
+    
+    
+    <script>
+      
+      $(function () {
+    
+              var socket = io();
+              socket.on('action', function(sphere){
+                 if (sphere != null){
+                   
+                  console.log(sphere.attackType);
+                  pushToQueue(sphere.attackType)
+                 }
+                
+              });
+      });
+    </script>
   </head>
   <body  style="margin : 0px; overflow: hidden; font-family: Monospace;">
   
-     <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
  <script>
       
       ///Section: Variables
@@ -474,7 +498,7 @@
       requestAnimationFrame(function animate(nowMsec){
         
       //  controls.update();
-        getAction();
+   
       
 
         // keep looping
@@ -488,29 +512,12 @@
           onRenderFct(deltaMsec/1000, nowMsec/1000)
         })
       })
-    
-   var socket = io.connect('http://127.0.0.1:4000');
-   
-     function getAction(){
-         
-         if(socket !== undefined){
-           
-                // Handle Output
-                socket.on('output', function(data){
-                   
-                       console.log(data);
-                    
-                });
-           
-         }
-     }
-    </script>
+      
+        
+ </script>
  
 
-    <!-- Your web-app is https, so your scripts need to be too -->
-    <script src="https://code.jquery.com/jquery-2.2.1.min.js"
-            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
-            crossorigin="anonymous"></script>
+ 
 
   </body>
 </html>

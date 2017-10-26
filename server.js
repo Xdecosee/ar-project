@@ -1,7 +1,7 @@
 // server.js
 // where your node app starts
-const mongo = require('mongodb').MongoClient;
-const client = require('socket.io').listen(4000).sockets;
+
+//const client = require('socket.io').listen(4000).sockets;
 
 // init project
 var express = require('express');
@@ -9,8 +9,30 @@ var app = express();
 
 // we've started you off with Express, 
 // but feel free to use whatever libs or frameworks you'd like through `package.json`.
+const mongo = require('mongodb').MongoClient;
+var server = require('http').createServer(app);
+var io = require('socket.io')(server);
 
+io.on('connection', function(socket){
+  console.log("user connected....");
+  socket.on('disconnect', function () {
+        console.log('user disconnected');
+    });
+  socket.on('action', function (sphere) {
+    io.emit('action', sphere);
+  });
+  
+  mongo.connect('mongodb://Dashre:Xdeco1998@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,'+
+              'arproject-shard-00-02-cjsdl.mongodb.net:27017/ARDB?ssl=true'+
+              '&replicaSet=ARPROJECT-shard-0&authSource=admin', function(err, db){
+  
+    var collection = db.collection('ARaction')
+    var stream = collection.find().sort({ _id : -1 }).limit(1).stream();
+     stream.on('data', function (doc){ socket.emit('action', doc.attackType);});
+ 
+  });
 
+});
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 
@@ -20,39 +42,7 @@ app.get("/", function (request, response) {
 });
 
 
-// listen for requests :)
-var listener = app.listen(process.env.PORT, function () {
-  console.log('Your app is listening on port ' + listener.address().port);
-});
-
-
-mongo.connect('mongodb://Dashre:Xdeco1998@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,'+
-              'arproject-shard-00-02-cjsdl.mongodb.net:27017/test?ssl=true'+
-              '&replicaSet=ARPROJECT-shard-0&authSource=admin', function(err, db){
-    if(err){
-        throw err;
-    }
-
-    console.log('MongoDB connected...');
-  
-     client.on('connection', function(socket){
-         let action = db.collection('ARaction');
-        
-        var sendStatus = function(s){
-            socket.emit('status', s);
-        }
-        
-        action.find().sort({_id:-1}).limit(1).toArray(function(err, res){
-            if(err){
-                throw err;
-            }
-           console.log("new data!")
-            // Emit the messages
-            socket.emit('output', res);
-        });
-
-
-     });
-
+server.listen(3000, function(){
+  console.log('server listening...');
 });
 

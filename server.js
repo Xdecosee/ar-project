@@ -62,7 +62,6 @@ io.on('connection', function(socket){
 
             // And when data arrives at that stream, print it out
             stream.on('data', function(oplogdoc) {
-                  console.log("server call : " + oplogdoc.o.attackType);
                   socket.emit('action', oplogdoc.o.attackType);
                 });
         });

@@ -91,7 +91,7 @@
         color: 0xFFFFFF,
 
       });
-      
+       var socket = io();
       
       ///Section: WEBGLRENDERER
       renderer.setClearColor(new THREE.Color('lightgrey'), 0)
@@ -145,17 +145,11 @@
       })
        
    
-     var socket = io();
 
-     function getAction(){
-        socket.on('action', function(sphere){
-             console.log("client side: "  + sphere);
-        });
-     }
+
+  
       ///Queue
       function popFromQueue(){
-         getAction();
-    
         
         if(queue.length > 0){
           firstItem = queue[0];
@@ -377,7 +371,10 @@
 
 ;(function(){
         
-       
+         socket.on('action', function(sphere){
+             console.log("client side: "  + sphere);
+              pushToQueue(sphere);
+        });
 
         /// Section: CROW LOGO
         crowMap.minFilter = THREE.LinearFilter

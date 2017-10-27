@@ -25,7 +25,7 @@
   </head>
   <body  style="margin : 0px; overflow: hidden; font-family: Monospace;">   
     <!-- Your web-app is https, so your scripts need to be too -->
-  
+  <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
  <script>
       
       ///Section: Variables
@@ -143,11 +143,18 @@
         if( arToolkitSource.ready === false )	return
         arToolkitContext.update( arToolkitSource.domElement )
       })
-
+       
    
+     var socket = io();
+
+     function getAction(){
+        socket.on('action', function(sphere){
+             console.log("client side: "  + sphere);
+        });
+     }
       ///Queue
       function popFromQueue(){
-       
+         getAction();
     
         
         if(queue.length > 0){
@@ -470,9 +477,7 @@
       requestAnimationFrame(function animate(nowMsec){
         
       //  controls.update();
-   
-       
-       getAction();
+        
         // keep looping
         requestAnimationFrame( animate );
         // measure time

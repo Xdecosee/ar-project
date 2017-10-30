@@ -72,13 +72,9 @@
       var curveLine = new THREE.Line(curveLineGeo, curveLineMat);
       
       //Variables - AR Markers and their Pointers
-      var hiroPointer, kanjiPointer, hiroControls, kanjiControls;
-      var hiroMarker = new THREE.Group
-      var kanjiMarker = new THREE.Group
-      var pointerGeo	= new THREE.OctahedronGeometry( 0.1, 0 )
-      var pointerMat	= new THREE.MeshNormalMaterial({
-        wireframe: true
-      }); 
+      var controls3, controls5;
+      var marker3 = new THREE.Group;
+      var marker5 = new THREE.Group;
       var midpoint = new THREE.Vector3();
       
       //Variables - Display of Spheres(Attack/Defense)
@@ -323,41 +319,24 @@
 
 ;(function(){
 
-        /// Section: HIRO MARKER
-      
-        scene.add(hiroMarker)
-       hiroControls = new THREEx.ArMarkerControls(arToolkitContext,hiroMarker, {
+        /// Section: generate Markers
+       // 0 == Blue Team
+      // 1 == Red Team
+        scene.add(marker3)
+        controls3 = new THREEx.ArMarkerControls(arToolkitContext,marker3, {
           type : 'barcode',
-       //   patternUrl : 'https://rawgit.com/jeromeetienne/AR.js/master/data/data/patt.hiro',
           barcodeValue : 3
-          
         })
+        addPointer(0, marker3);
         
-          var geometry1 = new THREE.RingGeometry( 0.5, 1, 8 );
-          var material1 = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide } );
-          var mesh1 = new THREE.Mesh( geometry1, material1 );
-          mesh1.rotation.x = Math.PI / 2;
-          mesh1.scale.set(0.4,0.4,0.4);
-          hiroMarker.add( mesh1 );
-
- 
-
-        /// Section: KANJI MARKER
-  
-        scene.add(kanjiMarker)
-       kanjiControls = new THREEx.ArMarkerControls(arToolkitContext, kanjiMarker, {
+        scene.add(marker5)
+        controls5 = new THREEx.ArMarkerControls(arToolkitContext, marker5 , {
           type : 'barcode',
-       //   patternUrl : 'https://rawgit.com/jeromeetienne/AR.js/master/data/data/patt.kanji'
           barcodeValue : 5
           
         })
-  
-        var geometry2 = new THREE.RingGeometry( 0.5, 1, 8 );
-        var material2 = new THREE.MeshBasicMaterial( { color: 0x0000ff, side: THREE.DoubleSide } );
-        var mesh2 = new THREE.Mesh( geometry2, material2);
-        mesh2.rotation.x = Math.PI / 2;
-        mesh2.scale.set(0.4,0.4,0.4);
-        kanjiMarker.add( mesh2 );
+        addPointer(1, marker5);
+        
 
  
 
@@ -366,13 +345,30 @@
 })()
 
 
+   function addPointer(team, group){
+      var ringGeo= new THREE.RingGeometry( 0.5, 1, 8 );
+      var redMat = new THREE.MeshBasicMaterial( { color: 0x0000ff, side: THREE.DoubleSide } );
+      var blueMat = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide } );
+      var redMesh = new THREE.Mesh( ringGeo, redMat);
+      var blueMesh = new THREE.Mesh( ringGeo, blueMat);
+      redMesh.rotation.x = Math.PI / 2;
+      redMesh.scale.set(0.4,0.4,0.4);
+      blueMesh.rotation.x = Math.PI / 2;
+      blueMesh.scale.set(0.4,0.4,0.4);
+      
+      if(team == 0){
+        group.add(blueMesh);
+      }
+      else{
+        group.add(redMesh);
+      }
+   }
 
 
 
 ;(function(){
         
          socket.on('action', function(sphere){
-             console.log("client side: "  + sphere);
               pushToQueue(sphere);
         });
 
@@ -402,11 +398,11 @@
          
        //   console.log(hiroControls.parameters.barcodeValue);
           
-         if( hiroMarker.visible === true && kanjiMarker.visible === true ){
+         if( marker3.visible === true && marker5.visible === true ){
 
            
             ///Section: CURVE MIDPOINT
-            midpoint.addVectors(hiroMarker.position, kanjiMarker.position).multiplyScalar(1/2)
+            midpoint.addVectors(marker3.position, marker5.position).multiplyScalar(1/2)
             midpoint.y += 1;
             
             ///Section: CROW LOGO POSITION
@@ -422,9 +418,9 @@
             ///Section: CURVE STUFF
          
             path = new THREE.QuadraticBezierCurve3(
-              hiroMarker.position,
+              marker3.position,
               midpoint,
-              kanjiMarker.position
+              marker5.position
 
             );
             curvePoints = path.getPoints(numPoints);
@@ -434,10 +430,7 @@
               curveLineGeo.vertices[i] = curvePoints[i];
 
             }
-            curveLineGeo.verticesNeedUpdate = true
-            // curveLineGeo.computeBoundingSphere();
-            //  curveLineGeo.computeLineDistances();
-            //   path.updateMatrix;
+            curveLineGeo.verticesNeedUpdate = true;
 
             
             ///Section: ARZONE STUFF

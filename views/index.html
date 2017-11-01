@@ -53,9 +53,7 @@
       
       //Variables - Attack Text
       
-      var textMap = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FEmpty.png?1508449158024');
-      var textMaterial = new THREE.SpriteMaterial( { map: textMap, color: 0xffffff } );
-      var currentName = new THREE.Sprite( textMaterial );
+   
    
       //Variables - Curve Path
       var path, counter = 0;
@@ -171,11 +169,9 @@
             queue.shift();
             sphere.visible = true;
             
-            var loader = firstItem[2];
-            var textNewMaterial = new THREE.SpriteMaterial( { map: loader, color: 0xffffff } );
-           
-            loader.minFilter = THREE.LinearFilter
-            currentName.material = textNewMaterial;
+            if(marker3.visible === true && marker5.visible === true){
+              loadText(firstItem[2], firstItem[1]);
+            }
           
           }
         }
@@ -187,15 +183,15 @@
      function pushToQueue(type){
         var newgeo;
         var newmat;
-        var newload;
+        var newText;
           if(type == 1){
 
             newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
             newmat = new THREE.MeshBasicMaterial({
               color: 0x00FF00,
             });
-            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FNormal.png?1508449158564');
         
+            newText = "Normal";
          
 
             
@@ -206,8 +202,8 @@
             newmat = new THREE.MeshBasicMaterial({
               color: 0xFFFF00,
             });
-            
-            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FReconn.png?1508449158363');
+            newText = "Reconnaissance";
+          
           }
           else if(type == 3){
 
@@ -215,8 +211,8 @@
             newmat = new THREE.MeshBasicMaterial({
               color: 0xFFA500,
             });
-            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FSQL.png?1508449160753');
-
+        
+            newText = "SQL Injection";
           }
 
           else if(type == 4){
@@ -225,7 +221,7 @@
             newmat = new THREE.MeshBasicMaterial({
               color: 0xFF69B4,
             });
-            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FSem.png?1508449160246');
+            newText = "Semantic URL Attack";
 
           }
           else if(type == 5){
@@ -235,8 +231,8 @@
               color: 0x800080,
 
             });
-           
-            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FCMD.png?1508449159842');
+            newText = "Command Injection";
+       
           }
           else if(type == 6){
 
@@ -245,8 +241,9 @@
               color: 0x00FFFF,
 
             });
-            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FRem.png?1508449158238');
-
+        
+            newText = "Remote Code Execution";
+       
           }
           else if(type == 7){
 
@@ -255,7 +252,9 @@
               color: 0xA52A2A,
 
             });
-            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FMani.png?1508449158746');
+            
+             newText = "URL Manipulation";
+         
 
           }
           else if(type == 8){
@@ -264,8 +263,11 @@
               color: 0x000080,
 
             });
+            
+             newText = "Privilege Escalation";
          
-            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FPriv.png?1508449161292');
+            
+         
           }
           else if(type == 9){
 
@@ -275,8 +277,42 @@
 
             });
         
-            newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FDirect.png?1508449159396');
+             newText = "Directory Traversal Attack";
+         
+        
+          }
+          else if(type == 10){
+            
+              newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0x006400,
 
+            });
+        
+             newText = "defense1";
+         
+          }
+          else if(type == 11){
+            
+              newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0x808080,
+
+            });
+        
+             newText = "defense2";
+         
+          }
+          else if(type == 12){
+            
+              newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+            newmat = new THREE.MeshBasicMaterial({
+              color: 0xFFB6C1,
+
+            });
+        
+             newText = "defense3";
+         
           }
           else{
             newgeo = new THREE.SphereGeometry(0, 0, 0);
@@ -284,11 +320,14 @@
               color: 0xFFFFFF,
 
             });
-           newload = new THREE.TextureLoader().load('https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2FEmpty.png?1508449158024');
+            
+           newText = "Error";
+         
+      
             
           }
 
-          queue.push([newgeo, newmat, newload]);
+          queue.push([newgeo, newmat, newText]);
  
       }
 
@@ -322,8 +361,7 @@
           else {
             counter = 0;
             sphere.visible = false;
-            textMap.minFilter = THREE.LinearFilter;
-            currentName.material = textMaterial;
+           
 
           }
 
@@ -403,10 +441,41 @@
         addPointer(1, marker5);
         markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
   
+  
+  
+  
 })()
 
     
- 
+ function loadText(text, mat){
+   
+   
+   
+        var loader = new THREE.FontLoader();
+
+        loader.load( 'https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fhelvetiker_regular.typeface.json?1509508427145', function ( font ) {
+
+          var textGeo = new THREE.TextGeometry( text, {
+            font: font,
+            size: 2,
+            height: 1,
+          });
+  
+          var textMesh = new THREE.Mesh( textGeo, mat);
+  
+          textMesh.position.set(midpoint.x, midpoint.y, midpoint.z);
+          
+          textMesh.scale.set(0.1,0.1,0.1);
+        
+          arzone.add(textMesh);
+          
+          
+        } );
+      
+   
+
+   
+ }
 ;(function(){
         
   
@@ -445,18 +514,16 @@
         /// Section: CROW LOGO
         crowMap.minFilter = THREE.LinearFilter
         crowLogo.scale.set(1, 0.40, 1);
-  
-        /// Section: Attack Text
-       textMap.minFilter = THREE.LinearFilter
-       currentName.scale.set(1, 0.2, 1);
-    
     
         /// Section : SPHERE OBJ
         sphere = new THREE.Mesh(defaultGeo, defaultMat);
         arzone.add(sphere);
         sphere.visible = false;
         setInterval(moveSphere, 10);
+        
   
+  
+
         
         /// Section: CURVE OBJ
         scene.add(arzone)
@@ -474,10 +541,6 @@
 
  	          crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
             crowLogo.position.y += 0.30;
-         
-            currentName.position.set(midpoint.x, midpoint.y, midpoint.z);
-          
-        
         
             ///Section: CURVE STUFF
             path = new THREE.QuadraticBezierCurve3(
@@ -495,9 +558,12 @@
             curveLineGeo.verticesNeedUpdate = true;
 
             arzone.add(curveLine);
-            arzone.add(currentName);
+          
+          
              
           arzone.add(crowLogo);
+           
+           
            arzone.visible = true;
          }
          else if(marker3.visible === true || marker5.visible === true){

@@ -52,9 +52,16 @@
       var crowLogo = new THREE.Sprite( crowMaterial );
       
       //Variables - Attack Text
-      
+       
+       var textMesh, loader, textGeo;
+      var textUrl = 'https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fhelvetiker_regular.typeface.json?1509508427145';
    
-   
+      var textMat = new THREE.MeshBasicMaterial({
+              color: 0xFFFFFF,
+
+      });
+      var textDef = " ";
+  
       //Variables - Curve Path
       var path, counter = 0;
       var tangent = new THREE.Vector3();
@@ -169,8 +176,11 @@
             queue.shift();
             sphere.visible = true;
             
-            if(marker3.visible === true && marker5.visible === true){
-              loadText(firstItem[2], firstItem[1]);
+         
+       
+           if(marker3.visible === true && marker5.visible === true){
+                  
+                  loader = new THREE.FontLoader().load(textUrl, function(font){loadText(firstItem[2], firstItem[1], font);});
             }
           
           }
@@ -361,7 +371,7 @@
           else {
             counter = 0;
             sphere.visible = false;
-           
+            loader = new THREE.FontLoader().load(textUrl, function(font){loadText(textDef,textMat, font);});
 
           }
 
@@ -418,6 +428,26 @@
         }           
 
   }
+  
+   
+   function loadText(text, mat, font){
+  
+
+          textGeo = new THREE.TextGeometry( text, {
+            font: font,
+            size: 2,
+            height: 1,
+          });
+   
+          textMesh.geometry = textGeo;
+          textMesh.material = mat;
+          textMesh.scale.set(0.1,0.1,0.1);
+             
+
+   
+ }
+   
+   
    
    
 ;(function(){
@@ -447,35 +477,7 @@
 })()
 
     
- function loadText(text, mat){
-   
-   
-   
-        var loader = new THREE.FontLoader();
-
-        loader.load( 'https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fhelvetiker_regular.typeface.json?1509508427145', function ( font ) {
-
-          var textGeo = new THREE.TextGeometry( text, {
-            font: font,
-            size: 2,
-            height: 1,
-          });
-  
-          var textMesh = new THREE.Mesh( textGeo, mat);
-  
-          textMesh.position.set(midpoint.x, midpoint.y, midpoint.z);
-          
-          textMesh.scale.set(0.1,0.1,0.1);
-        
-          arzone.add(textMesh);
-          
-          
-        } );
-      
-   
-
-   
- }
+ 
 ;(function(){
         
   
@@ -496,8 +498,6 @@
                
                  pushToQueue(sphere.o.actionType);
                   
-               console.log(start);
-                console.log(end);
 
              }
            
@@ -520,11 +520,29 @@
         arzone.add(sphere);
         sphere.visible = false;
         setInterval(moveSphere, 10);
-        
+          
   
   
-
+  
+  
+     
         
+          loader = new THREE.FontLoader().load(textUrl, function(font){
+          textGeo = new THREE.TextGeometry( textDef, {
+            font: font,
+            size: 2,
+            height: 1,
+          });
+   
+          textMesh = new THREE.Mesh( textGeo, textMat);
+          textMesh.scale.set(0.1,0.1,0.1);
+          
+          
+           arzone.add(textMesh);
+                   
+          });
+  
+      
         /// Section: CURVE OBJ
         scene.add(arzone)
   
@@ -556,15 +574,11 @@
 
             }
             curveLineGeo.verticesNeedUpdate = true;
-
+           
+            textMesh.position.set(midpoint.x, midpoint.y, midpoint.z);
             arzone.add(curveLine);
-          
-          
-             
-          arzone.add(crowLogo);
-           
-           
-           arzone.visible = true;
+             arzone.add(crowLogo);
+             arzone.visible = true;
          }
          else if(marker3.visible === true || marker5.visible === true){
           

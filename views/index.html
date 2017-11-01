@@ -17,6 +17,7 @@
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-artoolkitcontext.js"></script>
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-arbasecontrols.js"></script>
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-armarkercontrols.js"></script>
+    <script src="https://rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
     <link rel="stylesheet" href="/style.css">
     
     
@@ -42,7 +43,7 @@
         antialias	: true,
         alpha: true
       });
-   //  var controls;
+      //  var controls;
       var lastTimeMsec= null;
       
       //Variables - Crow Logo
@@ -88,6 +89,13 @@
 
       });
        var socket = io();
+       var machineArr = [];
+       var gui = new dat.GUI();
+       var markerVals = [];
+       var destSph, srcSph;
+       var start = marker5;
+       var end = marker3;
+
       
       ///Section: WEBGLRENDERER
       renderer.setClearColor(new THREE.Color('lightgrey'), 0)
@@ -141,7 +149,14 @@
       })
        
    
-
+   
+     
+     var FizzyText = function(){
+       this.View = function(){};
+     };
+   
+     var text = new FizzyText();
+     gui.add(text, 'View').name('Switch View');
 
   
       ///Queue
@@ -164,7 +179,6 @@
           
           }
         }
-        
        
         
     
@@ -278,6 +292,8 @@
  
       }
 
+   
+  
 
       
       ///Section: SPHERE MOVING ON CURVE
@@ -316,39 +332,10 @@
       }
 
    
-
-;(function(){
-
-        /// Section: generate Markers
-       // 0 == Blue Team
-      // 1 == Red Team
-        scene.add(marker3)
-        controls3 = new THREEx.ArMarkerControls(arToolkitContext,marker3, {
-          type : 'barcode',
-          barcodeValue : 3
-        })
-        addPointer(0, marker3);
-        
-        scene.add(marker5)
-        controls5 = new THREEx.ArMarkerControls(arToolkitContext, marker5 , {
-          type : 'barcode',
-          barcodeValue : 5
-          
-        })
-        addPointer(1, marker5);
-        
-
- 
-
-
-
-})()
-
-
-   function addPointer(team, group){
+  function addPointer(team, group){
       var ringGeo= new THREE.RingGeometry( 0.5, 1, 8 );
-      var redMat = new THREE.MeshBasicMaterial( { color: 0x0000ff, side: THREE.DoubleSide } );
-      var blueMat = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide } );
+      var blueMat = new THREE.MeshBasicMaterial( { color: 0x0000ff, side: THREE.DoubleSide } );
+      var redMat = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide } );
       var redMesh = new THREE.Mesh( ringGeo, redMat);
       var blueMesh = new THREE.Mesh( ringGeo, blueMat);
       redMesh.rotation.x = Math.PI / 2;
@@ -364,12 +351,95 @@
       }
    }
 
+     
+   
+   
+   function getVal(ip){
+     
+        for(var i = 0; i < machineArr.length; i++){
+          
+          
+              
+           if(ip == machineArr[i].ip){
+             return machineArr[i].value;
+           } 
+        }
+     
+   }
+   
+   
+   function getGrp(val){
+ 
+        for(var i = 0; i < markerVals.length; i++){
 
+        if(val == markerVals[i][0]){
+          return markerVals[i][1];
 
+        }
+
+        }           
+
+  }
+   
+   
+;(function(){
+
+        /// Section: generate Markers
+       // 0 == Blue Team, 1 == Red Team
+        scene.add(marker3)
+        controls3 = new THREEx.ArMarkerControls(arToolkitContext,marker3, {
+          type : 'barcode',
+          barcodeValue : 3
+        })
+        addPointer(0, marker3);
+        markerVals.push([controls3.parameters.barcodeValue, controls3.object3d]);
+        
+        scene.add(marker5)
+        controls5 = new THREEx.ArMarkerControls(arToolkitContext, marker5 , {
+          type : 'barcode',
+          barcodeValue : 5
+          
+        })
+        addPointer(1, marker5);
+        markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
+  
+})()
+
+    
+ 
 ;(function(){
         
+  
+  
+  
          socket.on('action', function(sphere){
-              pushToQueue(sphere);
+              srcSph = sphere.o.src;
+              destSph = sphere.o.dest;
+
+              //from ARmachine
+              var srcVal = getVal(srcSph);
+              var destVal = getVal(destSph);
+
+              start = getGrp(srcVal);
+              end = getGrp(destVal);
+           
+             if(start.visible === true && end.visible === true){
+               
+                 pushToQueue(sphere.o.actionType);
+                  
+               console.log(start);
+                console.log(end);
+
+             }
+           
+        });
+  
+          socket.on('machines', function(machines){
+               for(var i = 0; i < machines.length; i++){
+                 
+                 machineArr[i]  = machines[i];
+               }
+             
         });
 
         /// Section: CROW LOGO
@@ -389,73 +459,67 @@
   
         
         /// Section: CURVE OBJ
-        // curveLineGeo.dynamic = true;
         scene.add(arzone)
   
         /// Section: OBJ DISPLAY
         onRenderFcts.push(function(){
-          popFromQueue();
+        popFromQueue();
          
-       //   console.log(hiroControls.parameters.barcodeValue);
+     
           
          if( marker3.visible === true && marker5.visible === true ){
-
            
-            ///Section: CURVE MIDPOINT
             midpoint.addVectors(marker3.position, marker5.position).multiplyScalar(1/2)
             midpoint.y += 1;
-            
-            ///Section: CROW LOGO POSITION
-           crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
-           crowLogo.position.y += 0.30;
-            
-            ///Section: TEXT POSITION
+
+ 	          crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
+            crowLogo.position.y += 0.30;
          
-           currentName.position.set(midpoint.x, midpoint.y, midpoint.z);
+            currentName.position.set(midpoint.x, midpoint.y, midpoint.z);
           
         
         
             ///Section: CURVE STUFF
-         
             path = new THREE.QuadraticBezierCurve3(
-              marker3.position,
+              start.position,
               midpoint,
-              marker5.position
+              end.position
 
             );
             curvePoints = path.getPoints(numPoints);
             curveLineGeo = curveLine.geometry;
             for (var i = 0; i < curvePoints.length; i++) {
-              //  curveLineGeo.vertices.push(curvePoints[i]);
               curveLineGeo.vertices[i] = curvePoints[i];
 
             }
             curveLineGeo.verticesNeedUpdate = true;
 
-            
-            ///Section: ARZONE STUFF
-            arzone.add(curveLine)
-            arzone.add(crowLogo);
-         
+            arzone.add(curveLine);
             arzone.add(currentName);
-            arzone.visible = true
              
-           
-           
-            
-           
-
+          arzone.add(crowLogo);
+           arzone.visible = true;
          }
-        
+         else if(marker3.visible === true || marker5.visible === true){
+          
+           arzone.visible = false
+          
+          //queue= [];
+           
+         }
       
          else{
 
-           arzone.visible = false
+           arzone.visible = false;
+          //queue= [];
 
          }
         })
 })()
 
+   
+  
+ 
       /// Section: Render the scene
       onRenderFcts.push(function(){
         renderer.render( scene, camera );

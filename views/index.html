@@ -51,7 +51,7 @@
       var crowMaterial = new THREE.SpriteMaterial( { map: crowMap, color: 0xffffff } );
       var crowLogo = new THREE.Sprite( crowMaterial );
       
-      //Variables - Attack Text
+      //Variables - Action Text
        
        var textMesh, loader, textGeo;
       var textUrl = 'https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fhelvetiker_regular.typeface.json?1509508427145';
@@ -61,6 +61,7 @@
 
       });
       var textDef = " ";
+      var textCont = new THREE.Group;
   
       //Variables - Curve Path
       var path, counter = 0;
@@ -441,8 +442,6 @@
    
           textMesh.geometry = textGeo;
           textMesh.material = mat;
-          textMesh.scale.set(0.1,0.1,0.1);
-             
 
    
  }
@@ -535,10 +534,10 @@
           });
    
           textMesh = new THREE.Mesh( textGeo, textMat);
-          textMesh.scale.set(0.1,0.1,0.1);
+       
           
-          
-           arzone.add(textMesh);
+            arzone.add(textMesh);
+       
                    
           });
   
@@ -575,6 +574,8 @@
             }
             curveLineGeo.verticesNeedUpdate = true;
            
+           textMesh.geometry.center();
+           textMesh.scale.set(0.05,0.05,0.05);
             textMesh.position.set(midpoint.x, midpoint.y, midpoint.z);
             arzone.add(curveLine);
              arzone.add(crowLogo);

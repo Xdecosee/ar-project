@@ -27,6 +27,7 @@
   <body  style="margin : 0px; overflow: hidden; font-family: Monospace;">   
     <!-- Your web-app is https, so your scripts need to be too -->
   <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
+    <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/BabylonLoader.js"></script>
  <script>
       
       ///Section: Variables
@@ -83,6 +84,10 @@
       var marker3 = new THREE.Group;
       var marker5 = new THREE.Group;
       var midpoint = new THREE.Vector3();
+      var manager = new THREE.LoadingManager();
+       var portalUrl = ' https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fportal.json?1509609972673';
+     
+    
       
       //Variables - Display of Spheres(Attack/Defense)
       var sphere;
@@ -94,6 +99,8 @@
         color: 0xFFFFFF,
 
       });
+   
+       //Vairables - RealTime & Controls for User
        var socket = io();
        var machineArr = [];
        var gui = new dat.GUI();
@@ -182,6 +189,8 @@
            if(marker3.visible === true && marker5.visible === true){
                   
                   loader = new THREE.FontLoader().load(textUrl, function(font){loadText(firstItem[2], firstItem[1], font);});
+                   start = firstItem[3];
+                   end = firstItem[4];
             }
           
           }
@@ -191,7 +200,7 @@
     
       }
       
-     function pushToQueue(type){
+     function pushToQueue(type, begin, finish){
         var newgeo;
         var newmat;
         var newText;
@@ -338,7 +347,7 @@
             
           }
 
-          queue.push([newgeo, newmat, newText]);
+          queue.push([newgeo, newmat, newText, begin, finish]);
  
       }
 
@@ -380,28 +389,78 @@
 
       }
 
-   
-  function addPointer(team, group){
-      var ringGeo= new THREE.RingGeometry( 0.5, 1, 8 );
-      var blueMat = new THREE.MeshBasicMaterial( { color: 0x0000ff, side: THREE.DoubleSide } );
-      var redMat = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide } );
-      var redMesh = new THREE.Mesh( ringGeo, redMat);
-      var blueMesh = new THREE.Mesh( ringGeo, blueMat);
-      redMesh.rotation.x = Math.PI / 2;
-      redMesh.scale.set(0.4,0.4,0.4);
-      blueMesh.rotation.x = Math.PI / 2;
-      blueMesh.scale.set(0.4,0.4,0.4);
-      
-      if(team == 0){
-        group.add(blueMesh);
-      }
-      else{
-        group.add(redMesh);
-      }
-   }
+ 
+  function bluePointer(group){
+    
+	  	var blueLight = new THREE.DirectionalLight( 0x444444);
+			blueLight.position.set( 0, 0, 1 ).normalize();
+      scene.add(blueLight);
+    
+      var loader = new THREE.ObjectLoader().load(portalUrl, 
+                                                 
+         function ( obj ) {
+           
 
-     
-   
+         var newcolor = new THREE.MeshPhongMaterial( { color: 0x3C3CFF} );
+              
+              
+            function paint(o3d){
+                var children = o3d.children,
+                    geometry = o3d.geometry;
+                for ( var i = 0, il = children.length; i < il; i++ ) {
+                  paint( children[ i ] );
+                }
+                if ( geometry ) o3d.material = newcolor;
+
+            }
+           
+            paint(obj);
+            obj.rotation.set(0,4,0);
+            group.add(obj);
+            blueLight.target = obj;
+  
+          
+          },
+      );
+    
+  
+   };
+
+  function redPointer(group){
+    
+      var redLight = new THREE.DirectionalLight( 0x444444);
+			redLight.position.set( 0, 0, 1 ).normalize();
+      scene.add(redLight);
+    
+      var loader = new THREE.ObjectLoader().load(portalUrl, 
+                                                 
+         function ( obj ) {
+           
+
+         var newcolor = new THREE.MeshPhongMaterial( { color:  0xff0000 } );
+              
+              
+            function paint(o3d){
+                var children = o3d.children,
+                    geometry = o3d.geometry;
+                for ( var i = 0, il = children.length; i < il; i++ ) {
+                  paint( children[ i ] );
+                }
+                if ( geometry ) o3d.material = newcolor;
+
+            }
+           
+            paint(obj);
+            obj.rotation.set(0,4,0);
+            group.add(obj);
+            redLight.target = obj;
+  
+          
+          },
+      );
+    
+    
+  }
    
    function getVal(ip){
      
@@ -452,34 +511,46 @@
 ;(function(){
 
         /// Section: generate Markers
-       // 0 == Blue Team, 1 == Red Team
-        scene.add(marker3)
+       
+  
+     
+
+        scene.add(marker3);
+      
         controls3 = new THREEx.ArMarkerControls(arToolkitContext,marker3, {
           type : 'barcode',
           barcodeValue : 3
         })
-        addPointer(0, marker3);
-        markerVals.push([controls3.parameters.barcodeValue, controls3.object3d]);
         
-        scene.add(marker5)
+        markerVals.push([controls3.parameters.barcodeValue, controls3.object3d]);
+        bluePointer(marker3);
+  
+  
+
+        scene.add(marker5);
+  
         controls5 = new THREEx.ArMarkerControls(arToolkitContext, marker5 , {
           type : 'barcode',
           barcodeValue : 5
           
         })
-        addPointer(1, marker5);
+       
         markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
+        redPointer(marker5);
+        
   
-  
-  
-  
+      
 })()
 
     
  
 ;(function(){
         
-  
+           manager.onProgress = function ( item, loaded, total ) {
+
+                  console.log( item, loaded, total );
+
+        }
   
   
          socket.on('action', function(sphere){
@@ -490,12 +561,12 @@
               var srcVal = getVal(srcSph);
               var destVal = getVal(destSph);
 
-              start = getGrp(srcVal);
-              end = getGrp(destVal);
+              var begin = getGrp(srcVal);
+              var finish = getGrp(destVal);
            
-             if(start.visible === true && end.visible === true){
+             if(begin.visible === true && finish.visible === true){
                
-                 pushToQueue(sphere.o.actionType);
+                 pushToQueue(sphere.o.actionType, begin, finish);
                   
 
              }
@@ -520,10 +591,9 @@
         sphere.visible = false;
         setInterval(moveSphere, 10);
           
+
   
-  
-  
-  
+      
      
         
           loader = new THREE.FontLoader().load(textUrl, function(font){
@@ -585,14 +655,14 @@
           
            arzone.visible = false
           
-          //queue= [];
+           queue= [];
            
          }
       
          else{
 
            arzone.visible = false;
-          //queue= [];
+             queue= [];
 
          }
         })

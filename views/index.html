@@ -1,10 +1,10 @@
-
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <title>ARProject</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-     <meta charset="utf-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <!-- SCRIPT: three.js library -->
     <script src="https://rawgit.com/mrdoob/three.js/dev/build/three.js"></script>
@@ -19,692 +19,676 @@
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-armarkercontrols.js"></script>
     <script src="https://rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
     <link rel="stylesheet" href="/style.css">
-    
-    
-   
-  
-  </head>
-  <body  style="margin : 0px; overflow: hidden; font-family: Monospace;">   
+
+
+
+
+</head>
+
+<body style="margin : 0px; overflow: hidden; font-family: Monospace;">
     <!-- Your web-app is https, so your scripts need to be too -->
-  <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
-    <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/BabylonLoader.js"></script>
- <script>
-      
-      ///Section: Variables
-
-      //Variables - Important Variables
-      // array of functions for the rendering loop
-   
-      var onRenderFcts= [];
-      // init scene and camera
-      var scene	= new THREE.Scene();
-      var camera = new THREE.Camera();
-      // init renderer
-      var renderer	= new THREE.WebGLRenderer({
-        antialias	: true,
-        alpha: true
-      });
-      //  var controls;
-      var lastTimeMsec= null;
-      
-      //Variables - Crow Logo
-      var crowMap = new THREE.TextureLoader().load( "https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fcrow-logo.png?1508448491892" );
-      var crowMaterial = new THREE.SpriteMaterial( { map: crowMap, color: 0xffffff } );
-      var crowLogo = new THREE.Sprite( crowMaterial );
-      
-      //Variables - Action Text
-       
-       var textMesh, loader, textGeo;
-      var textUrl = 'https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fhelvetiker_regular.typeface.json?1509508427145';
-   
-      var textMat = new THREE.MeshBasicMaterial({
-              color: 0xFFFFFF,
-
-      });
-      var textDef = " ";
-      var textCont = new THREE.Group;
-  
-      //Variables - Curve Path
-      var path, counter = 0;
-      var tangent = new THREE.Vector3();
-      var axis = new THREE.Vector3();
-      var up = new THREE.Vector3(0, 1, 0);
-      var numPoints = 50;
-      
-      //Variables - Curve Line (Derived from Curve Path)
-      var curveLineMat = new THREE.LineBasicMaterial({
-        color: 0x000000,
-       opacity: 0.0
-      });
-      var curveLineGeo = new THREE.Geometry();
-      var curveLine = new THREE.Line(curveLineGeo, curveLineMat);
-      
-      //Variables - AR Markers and their Pointers
-      var controls3, controls5;
-      var marker3 = new THREE.Group;
-      var marker5 = new THREE.Group;
-      var midpoint = new THREE.Vector3();
-      var manager = new THREE.LoadingManager();
-       var portalUrl = ' https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fportal.json?1509609972673';
-     
-    
-      
-      //Variables - Display of Spheres(Attack/Defense)
-      var sphere;
-      var arzone = new THREE.Group;
-      var queue = [];
-      var firstItem = [];
-      var defaultGeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-      var defaultMat = new THREE.MeshBasicMaterial({
-        color: 0xFFFFFF,
-
-      });
-   
-       //Vairables - RealTime & Controls for User
-       var socket = io();
-       var machineArr = [];
-       var gui = new dat.GUI();
-       var markerVals = [];
-       var destSph, srcSph;
-       var start = marker5;
-       var end = marker3;
-
-      
-      ///Section: WEBGLRENDERER
-      renderer.setClearColor(new THREE.Color('lightgrey'), 0)
-      renderer.setSize( 640, 480);
-    //  renderer.domElement.style.position = 'absolute'
-      // renderer.domElement.style.top = '0px'
-      renderer.domElement.style.left = '0px' ;
-      document.body.appendChild( renderer.domElement );
-      //Actually no need trackball controls 
-    // controls = new THREE.TrackballControls(camera, renderer.domElement);
-      scene.add(camera);
-      
-      
-      ///Section: ARTOOLKITSOURCE
-      // to read from the webcam 
-      var arToolkitSource = new THREEx.ArToolkitSource({
-        sourceType : 'webcam',
-      })
-      arToolkitSource.init(function onReady(){
-        onResize()
-      })
-      // handle resize
-      window.addEventListener('resize', function(){
-        onResize()
-      })
-      function onResize(){
-        arToolkitSource.onResizeElement()	
-        arToolkitSource.copyElementSizeTo(renderer.domElement)	
-        if( arToolkitContext.arController !== null ){
-          arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas)	
-        }	
-      }
-
-
-      ///Section: ARTOOLKITCONTEXT
-      // create atToolkitContext
-      var arToolkitContext = new THREEx.ArToolkitContext({
-        cameraParametersUrl: 'https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fcamera_para.dat?1508448491282',
-        detectionMode: 'mono_and_matrix',
-        matrixCodeType: '3x3'
-      })
-      // initialize it
-      arToolkitContext.init(function onCompleted(){
-        // copy projection matrix to camera
-        camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
-      })
-      // update artoolkit on every frame
-      onRenderFcts.push(function(){
-        if( arToolkitSource.ready === false )	return
-        arToolkitContext.update( arToolkitSource.domElement )
-      })
-       
-   
-   
-     
-     var FizzyText = function(){
-       this.View = function(){};
-     };
-   
-     var text = new FizzyText();
-     gui.add(text, 'View').name('Switch View');
-
-  
-      ///Queue
-      function popFromQueue(){
-        
-        if(queue.length > 0){
-          firstItem = queue[0];
-          
-          if(sphere.visible == false){
-            sphere.geometry = firstItem[0];
-            sphere.material = firstItem[1];
-            queue.shift();
-            sphere.visible = true;
-            
-         
-       
-           if(marker3.visible === true && marker5.visible === true){
-                  
-                  loader = new THREE.FontLoader().load(textUrl, function(font){loadText(firstItem[2], firstItem[1], font);});
-                   start = firstItem[3];
-                   end = firstItem[4];
-            }
-          
-          }
-        }
-       
-        
-    
-      }
-      
-     function pushToQueue(type, begin, finish){
-        var newgeo;
-        var newmat;
-        var newText;
-          if(type == 1){
-
-            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0x00FF00,
-            });
-        
-            newText = "Normal";
-         
-
-            
-          }
-          else if(type == 2){
-
-            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0xFFFF00,
-            });
-            newText = "Reconnaissance";
-          
-          }
-          else if(type == 3){
-
-            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0xFFA500,
-            });
-        
-            newText = "SQL Injection";
-          }
-
-          else if(type == 4){
-
-            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0xFF69B4,
-            });
-            newText = "Semantic URL Attack";
-
-          }
-          else if(type == 5){
-
-            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0x800080,
-
-            });
-            newText = "Command Injection";
-       
-          }
-          else if(type == 6){
-
-            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0x00FFFF,
-
-            });
-        
-            newText = "Remote Code Execution";
-       
-          }
-          else if(type == 7){
-
-            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0xA52A2A,
-
-            });
-            
-             newText = "URL Manipulation";
-         
-
-          }
-          else if(type == 8){
-            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0x000080,
-
-            });
-            
-             newText = "Privilege Escalation";
-         
-            
-         
-          }
-          else if(type == 9){
-
-            newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0xff0000,
-
-            });
-        
-             newText = "Directory Traversal Attack";
-         
-        
-          }
-          else if(type == 10){
-            
-              newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0x006400,
-
-            });
-        
-             newText = "defense1";
-         
-          }
-          else if(type == 11){
-            
-              newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0x808080,
-
-            });
-        
-             newText = "defense2";
-         
-          }
-          else if(type == 12){
-            
-              newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0xFFB6C1,
-
-            });
-        
-             newText = "defense3";
-         
-          }
-          else{
-            newgeo = new THREE.SphereGeometry(0, 0, 0);
-            newmat = new THREE.MeshBasicMaterial({
-              color: 0xFFFFFF,
-
-            });
-            
-           newText = "Error";
-         
-      
-            
-          }
-
-          queue.push([newgeo, newmat, newText, begin, finish]);
- 
-      }
-
-   
-  
-
-      
-      ///Section: SPHERE MOVING ON CURVE
-      function moveSphere() {
-
-
-        if(sphere.visible == true){
-
-
-          if (counter <= 1) {
-
-
-            sphere.position.copy(path.getPointAt(counter));
-
-            tangent = path.getTangentAt(counter).normalize();
-
-            axis.crossVectors(up, tangent).normalize();
-
-            var radians = Math.acos(up.dot(tangent));
-
-            sphere.quaternion.setFromAxisAngle(axis, radians);
-
-            counter += 0.005
-          } 
-
-          else {
-            counter = 0;
-            sphere.visible = false;
-            loader = new THREE.FontLoader().load(textUrl, function(font){loadText(textDef,textMat, font);});
-
-          }
-
-        }
-
-      }
-
- 
-  function bluePointer(group){
-    
-	  	var blueLight = new THREE.DirectionalLight( 0x444444);
-			blueLight.position.set( 0, 0, 1 ).normalize();
-      scene.add(blueLight);
-    
-      var loader = new THREE.ObjectLoader().load(portalUrl, 
-                                                 
-         function ( obj ) {
-           
-
-         var newcolor = new THREE.MeshPhongMaterial( { color: 0x3C3CFF} );
-              
-              
-            function paint(o3d){
-                var children = o3d.children,
-                    geometry = o3d.geometry;
-                for ( var i = 0, il = children.length; i < il; i++ ) {
-                  paint( children[ i ] );
-                }
-                if ( geometry ) o3d.material = newcolor;
-
-            }
-           
-            paint(obj);
-            obj.rotation.set(0,4,0);
-            group.add(obj);
-            blueLight.target = obj;
-  
-          
-          },
-      );
-    
-  
-   };
-
-  function redPointer(group){
-    
-      var redLight = new THREE.DirectionalLight( 0x444444);
-			redLight.position.set( 0, 0, 1 ).normalize();
-      scene.add(redLight);
-    
-      var loader = new THREE.ObjectLoader().load(portalUrl, 
-                                                 
-         function ( obj ) {
-           
-
-         var newcolor = new THREE.MeshPhongMaterial( { color:  0xff0000 } );
-              
-              
-            function paint(o3d){
-                var children = o3d.children,
-                    geometry = o3d.geometry;
-                for ( var i = 0, il = children.length; i < il; i++ ) {
-                  paint( children[ i ] );
-                }
-                if ( geometry ) o3d.material = newcolor;
-
-            }
-           
-            paint(obj);
-            obj.rotation.set(0,4,0);
-            group.add(obj);
-            redLight.target = obj;
-  
-          
-          },
-      );
-    
-    
-  }
-   
-   function getVal(ip){
-     
-        for(var i = 0; i < machineArr.length; i++){
-          
-          
-              
-           if(ip == machineArr[i].ip){
-             return machineArr[i].value;
-           } 
-        }
-     
-   }
-   
-   
-   function getGrp(val){
- 
-        for(var i = 0; i < markerVals.length; i++){
-
-        if(val == markerVals[i][0]){
-          return markerVals[i][1];
-
-        }
-
-        }           
-
-  }
-  
-   
-   function loadText(text, mat, font){
-  
-
-          textGeo = new THREE.TextGeometry( text, {
-            font: font,
-            size: 2,
-            height: 1,
-          });
-   
-          textMesh.geometry = textGeo;
-          textMesh.material = mat;
-
-   
- }
-   
-   
-   
-   
-;(function(){
-
-        /// Section: generate Markers
-       
-  
-     
-
-        scene.add(marker3);
-      
-        controls3 = new THREEx.ArMarkerControls(arToolkitContext,marker3, {
-          type : 'barcode',
-          barcodeValue : 3
-        })
-        
-        markerVals.push([controls3.parameters.barcodeValue, controls3.object3d]);
-        bluePointer(marker3);
-  
-  
-
-        scene.add(marker5);
-  
-        controls5 = new THREEx.ArMarkerControls(arToolkitContext, marker5 , {
-          type : 'barcode',
-          barcodeValue : 5
-          
-        })
-       
-        markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
-        redPointer(marker5);
-        
-  
-      
-})()
-
-    
- 
-;(function(){
-        
-           manager.onProgress = function ( item, loaded, total ) {
-
-                  console.log( item, loaded, total );
-
-        }
-  
-  
-         socket.on('action', function(sphere){
-              srcSph = sphere.o.src;
-              destSph = sphere.o.dest;
-
-              //from ARmachine
-              var srcVal = getVal(srcSph);
-              var destVal = getVal(destSph);
-
-              var begin = getGrp(srcVal);
-              var finish = getGrp(destVal);
-           
-             if(begin.visible === true && finish.visible === true){
-               
-                 pushToQueue(sphere.o.actionType, begin, finish);
-                  
-
-             }
-           
+    <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
+    <script>
+        ///Section: Variables
+
+        //Variables - Important Variables
+        // array of functions for the rendering loop
+
+        var onRenderFcts = [];
+        // init scene and camera
+        var scene = new THREE.Scene();
+        var camera = new THREE.Camera();
+        // init renderer
+        var renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true
         });
-  
-          socket.on('machines', function(machines){
-               for(var i = 0; i < machines.length; i++){
-                 
-                 machineArr[i]  = machines[i];
-               }
-             
+        //  var controls;
+        var lastTimeMsec = null;
+
+        //Variables - Crow Logo
+        var crowMap = new THREE.TextureLoader().load("https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fcrow-logo.png?1508448491892");
+        var crowMaterial = new THREE.SpriteMaterial({
+            map: crowMap,
+            color: 0xffffff
+        });
+        var crowLogo = new THREE.Sprite(crowMaterial);
+
+        //Variables - Action Text
+
+        var textMesh, loader, textGeo;
+        var textUrl = 'https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fhelvetiker_regular.typeface.json?1509508427145';
+
+        var textMat = new THREE.MeshBasicMaterial({
+            color: 0xFFFFFF,
+
+        });
+        var textDef = " ";
+        var textCont = new THREE.Group;
+
+        //Variables - Curve Path
+        var path, counter = 0;
+        var tangent = new THREE.Vector3();
+        var axis = new THREE.Vector3();
+        var up = new THREE.Vector3(0, 1, 0);
+        var numPoints = 50;
+
+        //Variables - Curve Line (Derived from Curve Path)
+        var curveLineMat = new THREE.LineBasicMaterial({
+            color: 0x000000,
+            opacity: 0.0
+        });
+        var curveLineGeo = new THREE.Geometry();
+        var curveLine = new THREE.Line(curveLineGeo, curveLineMat);
+
+        //Variables - AR Markers and their Pointers
+        var controls3, controls5;
+        var marker3 = new THREE.Group;
+        var marker5 = new THREE.Group;
+        var midpoint = new THREE.Vector3();
+        var manager = new THREE.LoadingManager();
+        var portalUrl = ' https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fportal.json?1509609972673';
+
+
+
+        //Variables - Display of Spheres(Attack/Defense)
+        var sphere;
+        var arzone = new THREE.Group;
+        var queue = [];
+        var firstItem = [];
+        var defaultGeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+        var defaultMat = new THREE.MeshBasicMaterial({
+            color: 0xFFFFFF,
+
         });
 
-        /// Section: CROW LOGO
-        crowMap.minFilter = THREE.LinearFilter
-        crowLogo.scale.set(1, 0.40, 1);
-    
-        /// Section : SPHERE OBJ
-        sphere = new THREE.Mesh(defaultGeo, defaultMat);
-        arzone.add(sphere);
-        sphere.visible = false;
-        setInterval(moveSphere, 10);
-          
+        //Vairables - RealTime & Controls for User
+        var socket = io();
+        var machineArr = [];
+        var gui = new dat.GUI();
+        var markerVals = [];
+        var destSph, srcSph;
+        var start = marker5;
+        var end = marker3;
 
-  
-      
-     
-        
-          loader = new THREE.FontLoader().load(textUrl, function(font){
-          textGeo = new THREE.TextGeometry( textDef, {
-            font: font,
-            size: 2,
-            height: 1,
-          });
-   
-          textMesh = new THREE.Mesh( textGeo, textMat);
-       
-          
-            arzone.add(textMesh);
-       
-                   
-          });
-  
-      
-        /// Section: CURVE OBJ
-        scene.add(arzone)
-  
-        /// Section: OBJ DISPLAY
-        onRenderFcts.push(function(){
-        popFromQueue();
-         
-     
-          
-         if( marker3.visible === true && marker5.visible === true ){
-           
-            midpoint.addVectors(marker3.position, marker5.position).multiplyScalar(1/2)
-            midpoint.y += 1;
 
- 	          crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
-            crowLogo.position.y += 0.30;
-        
-            ///Section: CURVE STUFF
-            path = new THREE.QuadraticBezierCurve3(
-              start.position,
-              midpoint,
-              end.position
+        ///Section: WEBGLRENDERER
+        renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+        renderer.setSize(640, 480);
+        //  renderer.domElement.style.position = 'absolute'
+        // renderer.domElement.style.top = '0px'
+        renderer.domElement.style.left = '0px';
+        document.body.appendChild(renderer.domElement);
+        //Actually no need trackball controls 
+        // controls = new THREE.TrackballControls(camera, renderer.domElement);
+        scene.add(camera);
 
+
+        ///Section: ARTOOLKITSOURCE
+        // to read from the webcam 
+        var arToolkitSource = new THREEx.ArToolkitSource({
+            sourceType: 'webcam',
+        })
+        arToolkitSource.init(function onReady() {
+            onResize()
+        })
+        // handle resize
+        window.addEventListener('resize', function() {
+            onResize()
+        })
+
+        function onResize() {
+            arToolkitSource.onResizeElement()
+            arToolkitSource.copyElementSizeTo(renderer.domElement)
+            if (arToolkitContext.arController !== null) {
+                arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas)
+            }
+        }
+
+
+        ///Section: ARTOOLKITCONTEXT
+        // create atToolkitContext
+        var arToolkitContext = new THREEx.ArToolkitContext({
+            cameraParametersUrl: 'https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fcamera_para.dat?1508448491282',
+            detectionMode: 'mono_and_matrix',
+            matrixCodeType: '3x3'
+        })
+        // initialize it
+        arToolkitContext.init(function onCompleted() {
+            // copy projection matrix to camera
+            camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+        })
+        // update artoolkit on every frame
+        onRenderFcts.push(function() {
+            if (arToolkitSource.ready === false) return
+            arToolkitContext.update(arToolkitSource.domElement)
+        })
+
+
+
+
+        var FizzyText = function() {
+            this.View = function() {};
+        };
+
+        var text = new FizzyText();
+        gui.add(text, 'View').name('Switch View');
+
+
+        ///Queue
+        function popFromQueue() {
+
+            if (queue.length > 0) {
+                firstItem = queue[0];
+
+                if (sphere.visible == false) {
+                    sphere.geometry = firstItem[0];
+                    sphere.material = firstItem[1];
+                    queue.shift();
+                    sphere.visible = true;
+
+
+
+                    if (marker3.visible === true && marker5.visible === true) {
+
+                        loader = new THREE.FontLoader().load(textUrl, function(font) {
+                            loadText(firstItem[2], firstItem[1], font);
+                        });
+                        start = firstItem[3];
+                        end = firstItem[4];
+                    }
+
+                }
+            }
+
+
+
+        }
+
+        function pushToQueue(type, begin, finish) {
+            var newgeo;
+            var newmat;
+            var newText;
+            if (type == 1) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0x00FF00,
+                });
+
+                newText = "Normal";
+
+
+
+            } else if (type == 2) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0xFFFF00,
+                });
+                newText = "Reconnaissance";
+
+            } else if (type == 3) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0xFFA500,
+                });
+
+                newText = "SQL Injection";
+            } else if (type == 4) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0xFF69B4,
+                });
+                newText = "Semantic URL Attack";
+
+            } else if (type == 5) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0x800080,
+
+                });
+                newText = "Command Injection";
+
+            } else if (type == 6) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0x00FFFF,
+
+                });
+
+                newText = "Remote Code Execution";
+
+            } else if (type == 7) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0xA52A2A,
+
+                });
+
+                newText = "URL Manipulation";
+
+
+            } else if (type == 8) {
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0x000080,
+
+                });
+
+                newText = "Privilege Escalation";
+
+
+
+            } else if (type == 9) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0xff0000,
+
+                });
+
+                newText = "Directory Traversal Attack";
+
+
+            } else if (type == 10) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0x006400,
+
+                });
+
+                newText = "defense1";
+
+            } else if (type == 11) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0x808080,
+
+                });
+
+                newText = "defense2";
+
+            } else if (type == 12) {
+
+                newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0xFFB6C1,
+
+                });
+
+                newText = "defense3";
+
+            } else {
+                newgeo = new THREE.SphereGeometry(0, 0, 0);
+                newmat = new THREE.MeshBasicMaterial({
+                    color: 0xFFFFFF,
+
+                });
+
+                newText = "Error";
+
+
+
+            }
+
+            queue.push([newgeo, newmat, newText, begin, finish]);
+
+        }
+
+
+
+
+        ///Section: SPHERE MOVING ON CURVE
+        function moveSphere() {
+
+
+            if (sphere.visible == true) {
+
+
+                if (counter <= 1) {
+
+
+                    sphere.position.copy(path.getPointAt(counter));
+
+                    tangent = path.getTangentAt(counter).normalize();
+
+                    axis.crossVectors(up, tangent).normalize();
+
+                    var radians = Math.acos(up.dot(tangent));
+
+                    sphere.quaternion.setFromAxisAngle(axis, radians);
+
+                    counter += 0.005
+                } else {
+                    counter = 0;
+                    sphere.visible = false;
+                    loader = new THREE.FontLoader().load(textUrl, function(font) {
+                        loadText(textDef, textMat, font);
+                    });
+
+                }
+
+            }
+
+        }
+
+
+        function bluePointer(group) {
+
+            var blueLight = new THREE.DirectionalLight(0x444444);
+            blueLight.position.set(0, 0, 1).normalize();
+            scene.add(blueLight);
+
+            var loader = new THREE.ObjectLoader().load(portalUrl,
+
+                function(obj) {
+
+
+                    var newcolor = new THREE.MeshPhongMaterial({
+                        color: 0x3C3CFF
+                    });
+
+
+                    function paint(o3d) {
+                        var children = o3d.children,
+                            geometry = o3d.geometry;
+                        for (var i = 0, il = children.length; i < il; i++) {
+                            paint(children[i]);
+                        }
+                        if (geometry) o3d.material = newcolor;
+
+                    }
+
+                    paint(obj);
+                    obj.rotation.set(0, 4, 0);
+                    group.add(obj);
+                    blueLight.target = obj;
+
+
+                },
             );
-            curvePoints = path.getPoints(numPoints);
-            curveLineGeo = curveLine.geometry;
-            for (var i = 0; i < curvePoints.length; i++) {
-              curveLineGeo.vertices[i] = curvePoints[i];
+
+
+        };
+
+        function redPointer(group) {
+
+            var redLight = new THREE.DirectionalLight(0x444444);
+            redLight.position.set(0, 0, 1).normalize();
+            scene.add(redLight);
+
+            var loader = new THREE.ObjectLoader().load(portalUrl,
+
+                function(obj) {
+
+
+                    var newcolor = new THREE.MeshPhongMaterial({
+                        color: 0xff0000
+                    });
+
+
+                    function paint(o3d) {
+                        var children = o3d.children,
+                            geometry = o3d.geometry;
+                        for (var i = 0, il = children.length; i < il; i++) {
+                            paint(children[i]);
+                        }
+                        if (geometry) o3d.material = newcolor;
+
+                    }
+
+                    paint(obj);
+                    obj.rotation.set(0, 4, 0);
+                    group.add(obj);
+                    redLight.target = obj;
+
+
+                },
+            );
+
+
+        }
+
+        function getVal(ip) {
+
+            for (var i = 0; i < machineArr.length; i++) {
+
+
+
+                if (ip == machineArr[i].ip) {
+                    return machineArr[i].value;
+                }
+            }
+
+        }
+
+
+        function getGrp(val) {
+
+            for (var i = 0; i < markerVals.length; i++) {
+
+                if (val == markerVals[i][0]) {
+                    return markerVals[i][1];
+
+                }
 
             }
-            curveLineGeo.verticesNeedUpdate = true;
-           
-           textMesh.geometry.center();
-           textMesh.scale.set(0.05,0.05,0.05);
-            textMesh.position.set(midpoint.x, midpoint.y, midpoint.z);
-            arzone.add(curveLine);
-             arzone.add(crowLogo);
-             arzone.visible = true;
-         }
-         else if(marker3.visible === true || marker5.visible === true){
-          
-           arzone.visible = false
-          
-           queue= [];
-           
-         }
-      
-         else{
 
-           arzone.visible = false;
-             queue= [];
-
-         }
-        })
-})()
-
-   
-  
- 
-      /// Section: Render the scene
-      onRenderFcts.push(function(){
-        renderer.render( scene, camera );
-      })
+        }
 
 
-      ///Section: Run the rendering loop
-    
-      requestAnimationFrame(function animate(nowMsec){
+        function loadText(text, mat, font) {
+
+
+            textGeo = new THREE.TextGeometry(text, {
+                font: font,
+                size: 2,
+                height: 1,
+            });
+
+            textMesh.geometry = textGeo;
+            textMesh.material = mat;
+
+
+        }
+
+
+
+
         
-      //  controls.update();
+       ;(function() {
+
+            /// Section: generate Markers
+
+
+
+
+            scene.add(marker3);
+
+            controls3 = new THREEx.ArMarkerControls(arToolkitContext, marker3, {
+                type: 'barcode',
+                barcodeValue: 3
+            })
+
+            markerVals.push([controls3.parameters.barcodeValue, controls3.object3d]);
+            bluePointer(marker3);
+
+
+
+            scene.add(marker5);
+
+            controls5 = new THREEx.ArMarkerControls(arToolkitContext, marker5, {
+                type: 'barcode',
+                barcodeValue: 5
+
+            })
+
+            markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
+            redPointer(marker5);
+
+
+
+        })()
+
+
+
         
-        // keep looping
-        requestAnimationFrame( animate );
-        // measure time
-        lastTimeMsec	= lastTimeMsec || nowMsec-1000/60
-        var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec)
-        lastTimeMsec	= nowMsec
-        // call each update function
-        onRenderFcts.forEach(function(onRenderFct){
-          onRenderFct(deltaMsec/1000, nowMsec/1000)
+      ;(function() {
+
+            manager.onProgress = function(item, loaded, total) {
+
+                console.log(item, loaded, total);
+
+            }
+
+
+            socket.on('action', function(sphere) {
+                srcSph = sphere.o.src;
+                destSph = sphere.o.dest;
+
+                //from ARmachine
+                var srcVal = getVal(srcSph);
+                var destVal = getVal(destSph);
+
+                var begin = getGrp(srcVal);
+                var finish = getGrp(destVal);
+
+                if (begin.visible === true && finish.visible === true) {
+
+                    pushToQueue(sphere.o.actionType, begin, finish);
+
+
+                }
+
+            });
+
+            socket.on('machines', function(machines) {
+                for (var i = 0; i < machines.length; i++) {
+
+                    machineArr[i] = machines[i];
+                }
+
+            });
+
+            /// Section: CROW LOGO
+            crowMap.minFilter = THREE.LinearFilter
+            crowLogo.scale.set(1, 0.40, 1);
+
+            /// Section : SPHERE OBJ
+            sphere = new THREE.Mesh(defaultGeo, defaultMat);
+            arzone.add(sphere);
+            sphere.visible = false;
+            setInterval(moveSphere, 10);
+
+
+
+
+            loader = new THREE.FontLoader().load(textUrl, function(font) {
+                textGeo = new THREE.TextGeometry(textDef, {
+                    font: font,
+                    size: 2,
+                    height: 1,
+                });
+
+                textMesh = new THREE.Mesh(textGeo, textMat);
+                arzone.add(textMesh);
+            });
+
+
+            /// Section: CURVE OBJ
+            scene.add(arzone)
+
+            /// Section: OBJ DISPLAY
+            onRenderFcts.push(function() {
+                popFromQueue();
+
+
+
+                if (marker3.visible === true && marker5.visible === true) {
+
+                    midpoint.addVectors(marker3.position, marker5.position).multiplyScalar(1 / 2)
+                    midpoint.y += 1;
+
+                    crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
+                    crowLogo.position.y += 0.30;
+
+                    ///Section: CURVE STUFF
+                    path = new THREE.QuadraticBezierCurve3(
+                        start.position,
+                        midpoint,
+                        end.position
+
+                    );
+                    curvePoints = path.getPoints(numPoints);
+                    curveLineGeo = curveLine.geometry;
+                    for (var i = 0; i < curvePoints.length; i++) {
+                        curveLineGeo.vertices[i] = curvePoints[i];
+
+                    }
+                    curveLineGeo.verticesNeedUpdate = true;
+
+                    textMesh.geometry.center();
+                    textMesh.scale.set(0.05, 0.05, 0.05);
+                    textMesh.position.set(midpoint.x, midpoint.y, midpoint.z);
+                    arzone.add(curveLine);
+                    arzone.add(crowLogo);
+                    arzone.visible = true;
+                } else if (marker3.visible === true || marker5.visible === true) {
+
+                    arzone.visible = false
+
+                    queue = [];
+
+                } else {
+
+                    arzone.visible = false;
+                    queue = [];
+
+                }
+            })
+        })()
+
+
+
+
+        /// Section: Render the scene
+        onRenderFcts.push(function() {
+            renderer.render(scene, camera);
         })
-      })
-      
- 
 
- </script>
- 
-  
-      <script src="https://code.jquery.com/jquery-2.2.1.min.js"
-            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
-            crossorigin="anonymous"></script>
-    
- 
 
-  </body>
+        ///Section: Run the rendering loop
+
+        requestAnimationFrame(function animate(nowMsec) {
+
+            //  controls.update();
+
+            // keep looping
+            requestAnimationFrame(animate);
+            // measure time
+            lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
+            var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
+            lastTimeMsec = nowMsec
+            // call each update function
+            onRenderFcts.forEach(function(onRenderFct) {
+                onRenderFct(deltaMsec / 1000, nowMsec / 1000)
+            })
+        })
+    </script>
+
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js" integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00=" crossorigin="anonymous"></script>
+
+
+
+</body>
+
 </html>

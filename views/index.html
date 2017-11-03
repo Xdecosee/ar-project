@@ -26,24 +26,20 @@
 </head>
 
 <body style="margin : 0px; overflow: hidden; font-family: Monospace;">
-    <!-- Your web-app is https, so your scripts need to be too -->
+   
     <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
+    <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/renderers/CSS3DRenderer.js"></script>
     <script>
         ///Section: Variables
 
         //Variables - Important Variables
-        // array of functions for the rendering loop
-
         var onRenderFcts = [];
-        // init scene and camera
         var scene = new THREE.Scene();
         var camera = new THREE.Camera();
-        // init renderer
         var renderer = new THREE.WebGLRenderer({
             antialias: true,
             alpha: true
         });
-        //  var controls;
         var lastTimeMsec = null;
 
         //Variables - Crow Logo
@@ -55,7 +51,6 @@
         var crowLogo = new THREE.Sprite(crowMaterial);
 
         //Variables - Action Text
-
         var textMesh, loader, textGeo;
         var textUrl = 'https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fhelvetiker_regular.typeface.json?1509508427145';
 
@@ -89,11 +84,13 @@
         var manager = new THREE.LoadingManager();
         var portalUrl = ' https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fportal.json?1509609972673';
 
-
+        //Variables - View
+        var sphereZone = new THREE.Group;
+        var queueZone = new THREE.Group;
+        var mInfoZone = new THREE.Group;
 
         //Variables - Display of Spheres(Attack/Defense)
         var sphere;
-        var arzone = new THREE.Group;
         var queue = [];
         var firstItem = [];
         var defaultGeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
@@ -105,34 +102,66 @@
         //Vairables - RealTime & Controls for User
         var socket = io();
         var machineArr = [];
-        var gui = new dat.GUI();
+        var gui = new dat.GUI({ autoPlace: false });      
+        var guiDiv = document.createElement('div');
         var markerVals = [];
         var destSph, srcSph;
         var start = marker5;
         var end = marker3;
+        
+        //Variables- CSS3drenderer
+        var scene2 = new THREE.Scene();
+        var renderer2 = new THREE.CSS3DRenderer();
+      
+             var doubleBlueIp = null;
+            var doubleRedIp = null;
+            var doubleBlueHost = null;
+            var doubleRedHost = null;
+            var blueDiv, blueObj, blueTable; 
+            var redDiv, redObj, redTable;
 
+        //Variables - Machine Info(Two Markers)
 
+       
+       // renderer.domElement.style.top = '0px'
+     //   renderer.domElement.style.left = '0px';
+        guiDiv.style.position = 'absolute';
+       // guiDiv.style.left = '0px';
+        guiDiv.style.zIndex = 10;
+        guiDiv.style.top = '0px'
+			  document.body.appendChild( guiDiv);
+        guiDiv.appendChild(gui.domElement);
+      
+      
         ///Section: WEBGLRENDERER
-        renderer.setClearColor(new THREE.Color('lightgrey'), 0)
-        renderer.setSize(640, 480);
-        //  renderer.domElement.style.position = 'absolute'
-        // renderer.domElement.style.top = '0px'
+         renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+         renderer.setSize(window.innerWidth, window.innerHeight);
+         renderer.domElement.style.position = 'absolute'
+         // renderer.domElement.style.top = '0px'
         renderer.domElement.style.left = '0px';
-        document.body.appendChild(renderer.domElement);
+          document.body.appendChild(renderer.domElement);
+      
+      
+      
+        ///Section: Css3drenderer
+				renderer2.setSize(window.innerWidth, window.innerHeight);
+		  	renderer2.domElement.style.position = 'absolute';
+		  	//renderer2.domElement.style.top = 0;
+        renderer.domElement.style.left = '0px';
+				document.body.appendChild( renderer2.domElement );
+      
         //Actually no need trackball controls 
         // controls = new THREE.TrackballControls(camera, renderer.domElement);
         scene.add(camera);
 
 
         ///Section: ARTOOLKITSOURCE
-        // to read from the webcam 
         var arToolkitSource = new THREEx.ArToolkitSource({
             sourceType: 'webcam',
         })
         arToolkitSource.init(function onReady() {
             onResize()
         })
-        // handle resize
         window.addEventListener('resize', function() {
             onResize()
         })
@@ -147,35 +176,35 @@
 
 
         ///Section: ARTOOLKITCONTEXT
-        // create atToolkitContext
         var arToolkitContext = new THREEx.ArToolkitContext({
             cameraParametersUrl: 'https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fcamera_para.dat?1508448491282',
             detectionMode: 'mono_and_matrix',
             matrixCodeType: '3x3'
         })
-        // initialize it
         arToolkitContext.init(function onCompleted() {
-            // copy projection matrix to camera
+           
             camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
         })
-        // update artoolkit on every frame
         onRenderFcts.push(function() {
             if (arToolkitSource.ready === false) return
             arToolkitContext.update(arToolkitSource.domElement)
         })
 
-
-
-
+        ///Section: Dat.GUI
         var FizzyText = function() {
             this.View = function() {};
+            this.Red = function(){};
+            this.Blue = function(){};
         };
 
         var text = new FizzyText();
         gui.add(text, 'View').name('Switch View');
-
-
-        ///Queue
+        gui.add(text, 'Red').name('Red Team');
+        gui.add(text, 'Blue').name('Blue Team');
+        
+      
+      
+        ///Section: Sphere Queue
         function popFromQueue() {
 
             if (queue.length > 0) {
@@ -380,7 +409,8 @@
 
         }
 
-
+      
+        ///Section: Pointers(Portals) For Blue & Red
         function bluePointer(group) {
 
             var blueLight = new THREE.DirectionalLight(0x444444);
@@ -457,99 +487,100 @@
 
         }
 
-        function getVal(ip) {
-
-            for (var i = 0; i < machineArr.length; i++) {
-
-
-
-                if (ip == machineArr[i].ip) {
-                    return machineArr[i].value;
-                }
-            }
-
-        }
-
-
-        function getGrp(val) {
-
-            for (var i = 0; i < markerVals.length; i++) {
-
-                if (val == markerVals[i][0]) {
-                    return markerVals[i][1];
-
-                }
-
-            }
-
-        }
-
-
-        function loadText(text, mat, font) {
-
-
+      
+        
+      ///Section: Load Action Type Text
+       function loadText(text, mat, font) {
             textGeo = new THREE.TextGeometry(text, {
                 font: font,
                 size: 2,
                 height: 1,
             });
-
             textMesh.geometry = textGeo;
             textMesh.material = mat;
-
-
         }
 
-
-
-
+    
+         
         
        ;(function() {
-
-            /// Section: generate Markers
-
-
-
-
+            
+               
+             
+         
+         
+            /// Section: generate Markers (HardCode)
             scene.add(marker3);
-
             controls3 = new THREEx.ArMarkerControls(arToolkitContext, marker3, {
                 type: 'barcode',
                 barcodeValue: 3
             })
-
             markerVals.push([controls3.parameters.barcodeValue, controls3.object3d]);
             bluePointer(marker3);
+            // Machine Info (Two Markers)
+            blueDiv = document.createElement('div');
+            blueTable= document.createElement("TABLE");
+            blueObj = new THREE.CSS3DObject(blueDiv); 
+         
+           
 
 
 
             scene.add(marker5);
-
             controls5 = new THREEx.ArMarkerControls(arToolkitContext, marker5, {
                 type: 'barcode',
                 barcodeValue: 5
 
             })
-
             markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
             redPointer(marker5);
+            // Machine Info (Two Markers)
+            redDiv = document.createElement('div');
+            redTable= document.createElement("TABLE");
+            redObj = new THREE.CSS3DObject(redDiv); 
+            
+         
+            socket.on('machines', function(machines) {
+                for (var i = 0; i < machines.length; i++) {
+
+                    machineArr[i] = machines[i];
+                    
+                }
+               
+                createTable(blueDiv, blueObj, blueTable, "Blue Team", controls3.parameters.barcodeValue);
+                createTable(redDiv, redObj, redTable, "Red Team", controls5.parameters.barcodeValue);
+
+            });
+             
+            
 
 
 
         })()
 
-
-
-        
+    
       ;(function() {
 
-            manager.onProgress = function(item, loaded, total) {
+        
+        
+         
+           
+          
 
-                console.log(item, loaded, total);
+        /*     var ipRow2 = document.createElement("TR");
+            ipRow2.setAttribute("id", "ipRow2");
+            table.appendChild(ipRow2);
+            var cell1 = document.createElement("TD");
+            var text1 = document.createTextNode("Directory Traversal Attack");
+             var cell2 = document.createElement("TD");
+            var text2 = document.createTextNode("2017-10-31 23:02:57.192");
+            cell2.appendChild(text2);
+            cell1.appendChild(text1);
+            ipRow2.appendChild(cell1);
+            ipRow2.appendChild(cell2);*/
 
-            }
-
-
+          
+            ///Section: Socket.io stuff
             socket.on('action', function(sphere) {
                 srcSph = sphere.o.src;
                 destSph = sphere.o.dest;
@@ -557,40 +588,34 @@
                 //from ARmachine
                 var srcVal = getVal(srcSph);
                 var destVal = getVal(destSph);
-
+              
                 var begin = getGrp(srcVal);
                 var finish = getGrp(destVal);
 
                 if (begin.visible === true && finish.visible === true) {
 
                     pushToQueue(sphere.o.actionType, begin, finish);
-
-
                 }
 
             });
 
-            socket.on('machines', function(machines) {
-                for (var i = 0; i < machines.length; i++) {
-
-                    machineArr[i] = machines[i];
-                }
-
-            });
-
+          
             /// Section: CROW LOGO
             crowMap.minFilter = THREE.LinearFilter
             crowLogo.scale.set(1, 0.40, 1);
 
             /// Section : SPHERE OBJ
             sphere = new THREE.Mesh(defaultGeo, defaultMat);
-            arzone.add(sphere);
+            sphereZone.add(sphere);
             sphere.visible = false;
             setInterval(moveSphere, 10);
 
+            ///Section: Loading Action Type Text
+            manager.onProgress = function(item, loaded, total) {
 
+                console.log(item, loaded, total);
 
-
+            }
             loader = new THREE.FontLoader().load(textUrl, function(font) {
                 textGeo = new THREE.TextGeometry(textDef, {
                     font: font,
@@ -599,24 +624,37 @@
                 });
 
                 textMesh = new THREE.Mesh(textGeo, textMat);
-                arzone.add(textMesh);
+                sphereZone.add(textMesh);
             });
 
 
-            /// Section: CURVE OBJ
-            scene.add(arzone)
-
+            /// Section: SphereZone
+            scene.add(sphereZone);
+  
+      
             /// Section: OBJ DISPLAY
             onRenderFcts.push(function() {
                 popFromQueue();
-
-
-
+                  
+                  	
+                //Two Markers Visible
                 if (marker3.visible === true && marker5.visible === true) {
-
+                    
+                    ///Section: CSS3D (HardCode)
+                    if(blueDiv != null && redDiv != null){
+                    blueDiv.style.visibility = "visible";
+                    redDiv.style.visibility = "visible";
+                    redObj.position.set(marker3.position.x, marker3.position.y, marker3.position.z);
+                    blueObj.position.set(marker5.position.x, marker5.position.y, marker5.position.z);
+                    
+                      
+                    }
+                  
+                    ///Section: Update Midpoint Value
                     midpoint.addVectors(marker3.position, marker5.position).multiplyScalar(1 / 2)
                     midpoint.y += 1;
-
+                    
+                    ///Section: CROW LOGO
                     crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
                     crowLogo.position.y += 0.30;
 
@@ -634,22 +672,28 @@
 
                     }
                     curveLineGeo.verticesNeedUpdate = true;
-
+                    
+                    ///Section: Action Type Text
                     textMesh.geometry.center();
                     textMesh.scale.set(0.05, 0.05, 0.05);
                     textMesh.position.set(midpoint.x, midpoint.y, midpoint.z);
-                    arzone.add(curveLine);
-                    arzone.add(crowLogo);
-                    arzone.visible = true;
+                  
+                    ///Section: SphereZone
+                    sphereZone.add(curveLine);
+                    sphereZone.add(crowLogo);
+                    sphereZone.visible = true;
+                
+                //One Marker Visible
                 } else if (marker3.visible === true || marker5.visible === true) {
-
-                    arzone.visible = false
-
+                  
+                   
+                    sphereZone.visible = false;
                     queue = [];
-
+                
+                //No Markers Visible
                 } else {
-
-                    arzone.visible = false;
+                    
+                    sphereZone.visible = false;
                     queue = [];
 
                 }
@@ -658,29 +702,112 @@
 
 
 
+        ///Section: 'Getters'
+        function getVal(ip) {
 
+            for (var i = 0; i < machineArr.length; i++) {
+                if (ip == machineArr[i].ip) {
+                    return machineArr[i].value;
+                }
+            }
+
+        }
+      
+        function getHostName(ip){
+            for (var i = 0; i < machineArr.length; i++) {
+                if (ip == machineArr[i].ip) {
+                    return machineArr[i].hostname;
+                }
+            }
+        }
+      
+        function getGrp(val) {
+
+            for (var i = 0; i < markerVals.length; i++) {
+
+                if (val == markerVals[i][0]) {
+                    return markerVals[i][1];
+
+                }
+
+            }
+
+        }
+        
+        function getIp(barcode){
+          
+           for (var i = 0; i < machineArr.length; i++) {
+                  
+                if (barcode == machineArr[i].value) {
+                    
+                    return machineArr[i].ip;
+                }
+               
+            }
+        }
+      
+        
+        function createTable(div, obj, table, header, barcode){
+            div.style.width = '100px';
+            div.style.height = '100px';
+            div.style.visibility = "hidden";
+            div.appendChild(table);
+            obj.scale.set(0.01,0.01,0.01);
+            scene2.add(obj);
+             //Header - Machine Team
+            var teamRow = document.createElement("TR");
+            var teamHead = document.createElement("TH");
+            var teamText = document.createTextNode(header);
+            table.appendChild(teamRow);
+            teamHead.setAttribute("colspan", "2");
+            teamHead.appendChild(teamText);
+            teamRow.appendChild(teamHead);
+         
+            var ip = getIp(barcode);
+            var ipRow = document.createElement("TR");
+            var ipHead = document.createElement("TD");
+            var ipText = document.createTextNode(ip);
+            table.appendChild(ipRow);
+            ipHead.setAttribute("colspan", "2");
+            ipHead.appendChild(ipText);
+            ipRow.appendChild(ipHead);
+            //Second Row - Machine HostName
+            var hostRow = document.createElement("TR");
+            var hostHead = document.createElement("TD");
+            var hostname = getHostName(ip);
+            var hostText = document.createTextNode(hostname);
+            table.appendChild(hostRow);
+            hostHead.setAttribute("colspan", "2");
+            hostHead.appendChild(hostText);
+            hostRow.appendChild(hostHead);
+            
+          
+          
+               
+        }
+      
+      
         /// Section: Render the scene
         onRenderFcts.push(function() {
             renderer.render(scene, camera);
+        
+
         })
 
 
         ///Section: Run the rendering loop
-
         requestAnimationFrame(function animate(nowMsec) {
 
             //  controls.update();
-
-            // keep looping
+            renderer2.render( scene2, camera );
             requestAnimationFrame(animate);
-            // measure time
             lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
             var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
             lastTimeMsec = nowMsec
-            // call each update function
             onRenderFcts.forEach(function(onRenderFct) {
                 onRenderFct(deltaMsec / 1000, nowMsec / 1000)
             })
+          
         })
     </script>
 

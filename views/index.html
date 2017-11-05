@@ -115,6 +115,7 @@
         var blueText = "Blue Team";
         var redText = "Red Team";
         var elementsArr = [];
+        var visibleT = false;
 
         // renderer.domElement.style.top = '0px'
         //  renderer.domElement.style.left = '0px';
@@ -178,8 +179,7 @@
             if (arToolkitSource.ready === false) return
             arToolkitContext.update(arToolkitSource.domElement)
         })
-        
-        var visibleT = false;
+
         ///Section: Dat.GUI
         var FizzyText = function() {
             this.View = function() {};
@@ -188,16 +188,15 @@
 
         var text = new FizzyText();
         gui.add(text, 'View').name('Switch View');
-        var controls =  gui.add(text, 'Info').name('More Info').listen().onChange(function(newValue) {
-               
-            if(visibleT == false){
-              visibleT = true;
+        var controls = gui.add(text, 'Info').name('More Info').listen().onChange(function(newValue) {
+
+            if (visibleT == false) {
+                visibleT = true;
+            } else {
+                visibleT = false;
             }
-            else{
-              visibleT = false;
-            }
-      
-      });
+
+        });
         ///Section: Sphere Queue
         var queueDiv = document.createElement('div');
         var queueTable = document.createElement("TABLE");
@@ -509,7 +508,6 @@
 
         }
 
-      
         function getGrp(val) {
 
             for (var i = 0; i < markerVals.length; i++) {
@@ -633,9 +631,7 @@
             queueObj.position.set(crowLogo.position.x, crowLogo.position.y, crowLogo.position.z);
 
         }
-      
-      
-        
+
         function hideTable() {
 
             queueDiv.style.visibility = "hidden";
@@ -644,7 +640,7 @@
         }
 
         
-      ;(function() {
+       ;(function() {
             ///Section: Queue Table
 
             queueDiv.style.width = '100px';
@@ -782,16 +778,13 @@
 
             /// Section: SphereZone
             scene.add(sphereZone);
-  
-         
-         
-        
+
             onRenderFcts.push(function() {
                 popFromQueue();
 
                 //Two Markers Visible
                 if (marker3.visible === true && marker5.visible === true) {
-  
+
                     ///Section: Update Midpoint Value
                     midpoint.addVectors(marker3.position, marker5.position).multiplyScalar(1 / 2)
                     midpoint.y += 1;
@@ -799,18 +792,16 @@
                     ///Section: CROW LOGO
                     crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
                     crowLogo.position.y += 0.30;
-                    
+
                     ///Section: CSS3D (HardCode)
-                    if(visibleT == true){
-                      appendData(marker3);
-                      appendData(marker5);
-                      setPosVis();
+                    if (visibleT == true) {
+                        appendData(marker3);
+                        appendData(marker5);
+                        setPosVis();
+                    } else {
+                        hideTable();
                     }
-                    else{
-                      hideTable();
-                    }
-                      
-                 
+
                     ///Section: CURVE STUFF
                     path = new THREE.QuadraticBezierCurve3(
                         start.position,

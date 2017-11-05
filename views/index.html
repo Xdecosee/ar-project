@@ -28,7 +28,6 @@
     <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/renderers/CSS3DRenderer.js"></script>
     <script>
         ///Section: Variables
-
         //Variables - Important Variables
         var onRenderFcts = [];
         var scene = new THREE.Scene();
@@ -117,7 +116,6 @@
         var redText = "Red Team";
         var elementsArr = [];
 
-
         // renderer.domElement.style.top = '0px'
         //  renderer.domElement.style.left = '0px';
         guiDiv.style.position = 'absolute';
@@ -131,11 +129,12 @@
         renderer.setClearColor(new THREE.Color('lightgrey'), 0)
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.domElement.style.position = 'absolute'
-        // renderer.domElement.style.top = '0px'
+            // renderer.domElement.style.top = '0px'
         renderer.domElement.style.left = '0px';
         document.body.appendChild(renderer.domElement);
 
         ///Section: Css3drenderer
+
         renderer2.setSize(window.innerWidth, window.innerHeight);
         renderer2.domElement.style.position = 'absolute';
         //renderer2.domElement.style.top = 0;
@@ -189,13 +188,12 @@
         var text = new FizzyText();
         gui.add(text, 'View').name('Switch View');
         gui.add(text, 'Info').name('More Info');
-      
+
         ///Section: Sphere Queue
         var queueDiv = document.createElement('div');
         var queueTable = document.createElement("TABLE");
         var queueObj = new THREE.CSS3DObject(queueDiv);
 
-      
         function popFromQueue() {
 
             if (queue.length > 0) {
@@ -220,13 +218,18 @@
                         var actText = document.createTextNode(firstItem[2]);
                         var timeCell = document.createElement("TD");
                         var timeText = document.createTextNode(firstItem[5]);
+                        var teamCell = document.createElement("TD");
+                        var teamText = document.createTextNode(firstItem[6]);
                         queueTable.appendChild(itemRow);
                         actCell.appendChild(actText);
                         itemRow.appendChild(actCell);
                         timeCell.appendChild(timeText);
                         itemRow.appendChild(timeCell);
+                        teamCell.appendChild(teamText);
+                        itemRow.appendChild(teamCell);
                         setColour(actCell, null);
                         setColour(timeCell, null);
+                        setColour(teamCell, null);
 
                     }
 
@@ -235,7 +238,7 @@
 
         }
 
-        function pushToQueue(type, begin, finish, dateTime) {
+        function pushToQueue(type, begin, finish, dateTime, team) {
             var newgeo;
             var newmat;
             var newText;
@@ -361,7 +364,7 @@
 
             }
 
-            queue.push([newgeo, newmat, newText, begin, finish, dateTime]);
+            queue.push([newgeo, newmat, newText, begin, finish, dateTime, team]);
 
         }
 
@@ -487,14 +490,17 @@
 
         }
 
-        function getHostName(ip) {
+        function getTeamVal(ip) {
+
             for (var i = 0; i < machineArr.length; i++) {
                 if (ip == machineArr[i].ip) {
-                    return machineArr[i].hostname;
+                    return machineArr[i].team;
                 }
             }
+
         }
 
+      
         function getGrp(val) {
 
             for (var i = 0; i < markerVals.length; i++) {
@@ -519,118 +525,135 @@
 
             }
         }
-           
-        function getElement(grp, index) {
 
-          
-            var barcode, element;
-            for (var i = 0; i < elementsArr.length; i++) {
+        function getHost(barcode) {
+            for (var i = 0; i < machineArr.length; i++) {
 
-                for (var j = 0; j < markerVals.length; j++) {
+                if (barcode == machineArr[i].value) {
 
-                    if (markerVals[j][1] == grp) {
-                        barcode = markerVals[j][0];
-
-                    }
+                    return machineArr[i].hostname;
                 }
 
-                if (elementsArr[i][0] == barcode) {
-                    element = elementsArr[i][index];
-                    return element;
+            }
+        }
+
+        function getTeam(barcode) {
+            for (var i = 0; i < machineArr.length; i++) {
+
+                if (barcode == machineArr[i].value) {
+
+                    return machineArr[i].team;
                 }
+
+            }
+        }
+
+        function getValue(grp) {
+
+            for (var i = 0; i < markerVals.length; i++) {
+
+                if (grp == markerVals[i][1]) {
+                    return markerVals[i][0];
+
+                }
+
             }
 
         }
-        
+
         ///Section: Div for Each Machine
         function setColour(element, team) {
 
             element.style.borderCollapse = "collapse";
             element.style.textAlign = "center";
+            element.style.color = "white";
 
             if (team == blueText) {
 
-                element.style.border = "3px solid blue";
-                element.style.background = "aqua";
+                element.style.border = "2px solid white";
+                element.style.background = "#000099";
 
             } else if (team == redText) {
 
-                element.style.border = "3px solid red";
-                element.style.background = "#f08080";
+                element.style.border = "2px solid white";
+                element.style.background = "#B20000";
 
             } else {
-                element.style.border = "3px solid white";
+                element.style.border = "2px solid white";
                 element.style.background = "black";
-                element.style.color = "white";
 
             }
 
         }
 
-        function createTable(barcode, team, ip, hostname) {
+        function createRows(text) {
 
-            var div = document.createElement('div');
-            var table = document.createElement("TABLE");
-            var obj = new THREE.CSS3DObject(div);
-
-            div.style.width = '100px';
-            div.style.height = '100px';
-            div.style.visibility = "hidden";
-            div.appendChild(table);
-            obj.scale.set(0.01, 0.01, 0.01);
-            scene2.add(obj);
             //Header - Machine Team
             var teamRow = document.createElement("TR");
             var teamHead = document.createElement("TH");
             var teamText, displayedText;
+            teamText = document.createTextNode(text);
+            displayedText = text;
 
-            if (team == 0) {
-
-                teamText = document.createTextNode(blueText);
-                displayedText = blueText;
-            } else {
-                teamText = document.createTextNode(redText);
-                displayedText = redText;
-
-            }
-
-            table.appendChild(teamRow);
-            teamHead.setAttribute("colspan", "2");
+            queueTable.appendChild(teamRow);
             teamHead.appendChild(teamText);
             teamRow.appendChild(teamHead);
 
-            var ipRow = document.createElement("TR");
             var ipHead = document.createElement("TD");
-            var ipText = document.createTextNode(ip);
-            table.appendChild(ipRow);
-            ipHead.setAttribute("colspan", "2");
-            ipHead.appendChild(ipText);
-            ipRow.appendChild(ipHead);
-            //Second Row - Machine HostName
-            var hostRow = document.createElement("TR");
-            var hostHead = document.createElement("TD");
-            var hostText = document.createTextNode(hostname);
-            table.appendChild(hostRow);
-            hostHead.setAttribute("colspan", "2");
-            hostHead.appendChild(hostText);
-            hostRow.appendChild(hostHead);
 
-            setColour(table, displayedText);
+            teamRow.appendChild(ipHead);
+
+            var hostHead = document.createElement("TD");
+            teamRow.appendChild(hostHead);
             setColour(teamHead, displayedText);
             setColour(ipHead, displayedText);
             setColour(hostHead, displayedText);
-            elementsArr.push([barcode, div, table, obj]);
+            var ipText = document.createTextNode(" ");
+            var hostText = document.createTextNode(" ");
+            ipHead.appendChild(ipText);
+            hostHead.appendChild(hostText);
+
+            elementsArr.push([ipText, hostText, text]);
 
         }
-        
+
         ///Section: Div Visibility & Position
-        function setPosVis(div, obj, grp) {
-            div.style.visibility = "visible";
-            obj.position.set(grp.position.x, grp.position.y, grp.position.z);
+        function setPosVis() {
+
+            queueDiv.style.visibility = "visible";
+            queueObj.position.set(crowLogo.position.x, crowLogo.position.y, crowLogo.position.z);
+
         }
+
         
       ;(function() {
+            ///Section: Queue Table
 
+            queueDiv.style.width = '100px';
+            queueDiv.style.height = '100px';
+            queueDiv.style.visibility = "hidden";
+            queueDiv.appendChild(queueTable);
+            queueObj.scale.set(0.01, 0.01, 0.01);
+            scene2.add(queueObj);
+            createRows(blueText);
+            createRows(redText);
+            var queueRow = document.createElement("TR");
+            queueTable.appendChild(queueRow);
+            var actionHead = document.createElement("TH");
+            var actionText = document.createTextNode("Action");
+            actionHead.appendChild(actionText);
+            var dateHead = document.createElement("TH");
+            var dateText = document.createTextNode("Time");
+            dateHead.appendChild(dateText);
+            var sourceHead = document.createElement("TH");
+            var sourceText = document.createTextNode("Source");
+            sourceHead.appendChild(sourceText);
+            queueRow.appendChild(actionHead);
+            queueRow.appendChild(dateHead);
+            queueRow.appendChild(sourceHead);
+            setColour(actionHead, null);
+            setColour(dateHead, null);
+            setColour(sourceHead, null);
 
             /// Section: generate Markers (HardCode)
             scene.add(marker3);
@@ -640,7 +663,6 @@
             })
             markerVals.push([controls3.parameters.barcodeValue, controls3.object3d]);
             bluePointer(marker3);
-        
 
             scene.add(marker5);
             controls5 = new THREEx.ArMarkerControls(arToolkitContext, marker5, {
@@ -650,47 +672,42 @@
             })
             markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
             redPointer(marker5);
-       
-        
+
             socket.on('machines', function(machines) {
 
                 //What happens if got new machine ???
                 for (var i = 0; i < machines.length; i++) {
 
                     machineArr[i] = machines[i];
-                    createTable(machines[i].value, machines[i].team, machines[i].ip, machines[i].hostname);
 
                 }
 
             });
-
         })()
-   
+
+        ///Section: Update Ip & Hostname
+        function appendData(group) {
+
+            var barcode = getValue(group);
+            var ip = getIp(barcode);
+            var host = getHost(barcode);
+            var team = getTeam(barcode);
+
+            for (var i = 0; i < elementsArr.length; i++) {
+
+                if (team == 0 && elementsArr[i][2] == blueText || team == 1 && elementsArr[i][2] == redText) {
+
+                    elementsArr[i][0].nodeValue = ip;
+                    elementsArr[i][1].nodeValue = host;
+
+                }
+
+            }
+
+        }
+
         
-        
-      
-      ;(function() {
-            
-            ///Section: Queue Table
-            queueDiv.style.width = '100px';
-            queueDiv.style.height = '100px';
-            queueDiv.style.visibility = "hidden";
-            queueDiv.appendChild(queueTable);
-            queueObj.scale.set(0.01, 0.01, 0.01);
-            scene2.add(queueObj);
-            var queueRow = document.createElement("TR");
-            queueTable.appendChild(queueRow);
-            var actionHead = document.createElement("TH");
-            var actionText = document.createTextNode("Action");
-            actionHead.appendChild(actionText);
-            var dateHead = document.createElement("TH");
-            var dateText = document.createTextNode("Time");
-            dateHead.appendChild(dateText);
-            queueRow.appendChild(actionHead);
-            queueRow.appendChild(dateHead);
-            setColour(queueTable, null);
-            setColour(actionHead, null);
-            setColour(dateHead, null);
+       ;(function() {
 
             ///Section: Socket.io stuff
             socket.on('action', function(sphere) {
@@ -700,11 +717,20 @@
                 var srcVal = getVal(srcSph);
                 var destVal = getVal(destSph);
 
+                var srcTeam = getTeamVal(srcSph);
+
                 var begin = getGrp(srcVal);
                 var finish = getGrp(destVal);
 
+                var teamValue;
+                if (srcTeam == 0) {
+                    teamValue = blueText;
+                } else {
+                    teamValue = redText;
+                }
+
                 if (begin.visible === true && finish.visible === true) {
-                    pushToQueue(sphere.o.actionType, begin, finish, sphere.o.dateTime);
+                    pushToQueue(sphere.o.actionType, begin, finish, sphere.o.dateTime, teamValue);
                 }
 
             });
@@ -745,23 +771,18 @@
                 //Two Markers Visible
                 if (marker3.visible === true && marker5.visible === true) {
 
-                  
-
                     ///Section: Update Midpoint Value
                     midpoint.addVectors(marker3.position, marker5.position).multiplyScalar(1 / 2)
                     midpoint.y += 1;
-                    
-                    ///Section: CSS3D (HardCode)
-                    setPosVis(getElement(marker3, 1), getElement(marker3, 3), marker3);
-                    setPosVis(getElement(marker5, 1), getElement(marker5, 3), marker5);
-                  
-                  
-                    queueDiv.style.visibility = "visible";
-                    queueObj.position.set(midpoint.x, midpoint.y, midpoint.z);
 
                     ///Section: CROW LOGO
                     crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
                     crowLogo.position.y += 0.30;
+
+                    ///Section: CSS3D (HardCode)
+                    appendData(marker3);
+                    appendData(marker5);
+                    setPosVis();
 
                     ///Section: CURVE STUFF
                     path = new THREE.QuadraticBezierCurve3(

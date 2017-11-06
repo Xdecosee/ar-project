@@ -250,32 +250,43 @@
                         });
                         start = firstItem[3];
                         end = firstItem[4];
-
-                        var itemRow = document.createElement("TR");
-                        var actCell = document.createElement("TD");
-                        var actText = document.createTextNode(firstItem[2]);
-                        var timeCell = document.createElement("TD");
-                        var timeText = document.createTextNode(firstItem[5]);
-                        var teamCell = document.createElement("TD");
-                        var teamText = document.createTextNode(firstItem[6]);
-                        queueTable.appendChild(itemRow);
-                        actCell.appendChild(actText);
-                        itemRow.appendChild(actCell);
-                        timeCell.appendChild(timeText);
-                        itemRow.appendChild(timeCell);
-                        teamCell.appendChild(teamText);
-                        itemRow.appendChild(teamCell);
-                        setColour(actCell, null);
-                        setColour(timeCell, null);
-                        setColour(teamCell, null);
-
+                        
+                        //NEED TO UPDATE IF GOT MORE PATHS
+                        if(queueTable.rows.length == 6){
+                           queueTable.deleteRow(3);
+                        }
+                      
+                        appendActionRow(firstItem);
+                      
                     }
 
                 }
             }
 
         }
-
+        
+        function appendActionRow(firstItem){
+          
+                var itemRow = document.createElement("TR");
+                var actCell = document.createElement("TD");
+                var actText = document.createTextNode(firstItem[2]);
+                var timeCell = document.createElement("TD");
+                var timeText = document.createTextNode(firstItem[5]);
+                var teamCell = document.createElement("TD");
+                var teamText = document.createTextNode(firstItem[6]);
+                queueTable.appendChild(itemRow);
+                actCell.appendChild(actText);
+                itemRow.appendChild(actCell);
+                timeCell.appendChild(timeText);
+                itemRow.appendChild(timeCell);
+                teamCell.appendChild(teamText);
+                itemRow.appendChild(teamCell);
+                setColour(actCell, null);
+                setColour(timeCell, null);
+                setColour(teamCell, null);
+                        
+          
+        }
         function pushToQueue(type, begin, finish, dateTime, team) {
             var newgeo;
             var newmat;
@@ -840,6 +851,7 @@
 
                     }
                     curveLineGeo.verticesNeedUpdate = true;
+                
 
                     ///Section: Action Type Text
                     textMesh.geometry.center();

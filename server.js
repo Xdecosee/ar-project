@@ -12,7 +12,6 @@ app.get("/", function(request, response) {
 });
 
 
-
 http.listen(3000, function() {
     console.log('listening on *:3000');
 });
@@ -26,7 +25,7 @@ var oplogurl = 'mongodb://tester:cR0wTeSt3r@arproject-shard-00-00-cjsdl.mongodb.
 
 var arurl = 'mongodb://tester:cR0wTeSt3r@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,' +
     'arproject-shard-00-02-cjsdl.mongodb.net:27017/ARDB?ssl=true&replicaSet=ARPROJECT-shard-0&authSource=admin';
-
+ 
 
 io.on('connection', function(socket) {
     console.log('a user connected');
@@ -77,33 +76,50 @@ io.on('connection', function(socket) {
 
                 // And when data arrives at that stream, print it out
                 stream.on('data', function(oplogdoc) {
-                    socket.emit('action', oplogdoc);
+                     if(oplogdoc.ns == 'ARDB.ARaction'){
+                       socket.emit('action', oplogdoc);
+                     }
+                    
+                    
                 });
             });
         });
 
-        var machines = [];
-        MongoDB.MongoClient.connect(arurl, function(err, db) {
-
-            if (err) {
-                console.log("conn error");
-            }
-            db.collection("ARmachine", function(err, machine) {
-                machine.find().toArray(function(err, result) {
-                    if (err) {
-                        throw err;
-                    } else {
-                        for (var i = 0; i < result.length; i++) {
-                            machines[i] = result[i];
-
-                        }
-                        socket.emit('machines', machines);
-                    }
-                });
-            });
-
-        });
+      
+  
+      
+        
     });
 
 
 });
+
+ var machines = [];
+
+MongoDB.MongoClient.connect(arurl, function(err, db) {
+
+      if (err) {
+          console.log("conn error");
+      }
+      db.collection("ARmachine", function(err, machine) {
+        machine.find().toArray(function(err, result) {
+              if (err) {
+                  throw err;
+              } else {
+                  for (var i = 0; i < result.length; i++) {
+                      machines[i] = result[i];
+                  }
+                  
+                
+                 app.get("/machines", function(request, response) {
+                    response.send(machines);
+                });
+             
+                
+              }
+          });
+      });
+     
+
+  });
+

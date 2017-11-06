@@ -75,7 +75,9 @@
         //Variables - Curve Line (Derived from Curve Path)
         var curveLineMat = new THREE.LineBasicMaterial({
             color: 0x000000,
+            transparent: true,
             opacity: 0.0
+            
         });
         var curveLineGeo = new THREE.Geometry();
         var curveLine = new THREE.Line(curveLineGeo, curveLineMat);
@@ -99,8 +101,7 @@
         var firstItem = [];
         var defaultGeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
         var defaultMat = new THREE.MeshBasicMaterial({
-            color: 0xFFFFFF,
-
+            color: 0xFFFFFF
         });
 
         //Vairables - RealTime & Controls for User

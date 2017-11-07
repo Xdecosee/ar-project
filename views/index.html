@@ -120,6 +120,11 @@
         var elementsArr = [];
         var visibleT = false;
         var previousType = null;
+      
+        //Variables - Machine Info (One Marker)
+      
+        var singleElementsArr = [];
+        var textNodeArr = [];
 
         // renderer.domElement.style.top = '0px'
         //  renderer.domElement.style.left = '0px';
@@ -215,11 +220,17 @@
             }
 
         });
-        ///Section: Sphere Queue
+       
+        ///Section: Create Divs Needed
         var queueDiv = document.createElement('div');
         var queueTable = document.createElement("TABLE");
         var queueObj = new THREE.CSS3DObject(queueDiv);
-
+        var singleDiv = document.createElement('div');
+        var singleTable = document.createElement("TABLE");
+        var singleObj = new THREE.CSS3DObject(singleDiv);
+        
+      
+         ///Section: Sphere Queue
         function popFromQueue() {
 
             if (queue.length > 0) {
@@ -636,9 +647,7 @@
             teamRow.appendChild(teamHead);
 
             var ipHead = document.createElement("TD");
-
             teamRow.appendChild(ipHead);
-
             var hostHead = document.createElement("TD");
             teamRow.appendChild(hostHead);
             setColour(teamHead, displayedText);
@@ -654,18 +663,27 @@
         }
 
         ///Section: Div Visibility & Position
-        function setPosVis() {
+        function twoPosVis() {
 
             queueDiv.style.visibility = "visible";
             queueObj.position.set(midpoint.x, midpoint.y, midpoint.z);
             queueObj.position.z += -5;
 
         }
+        
+          function onePosVis(marker) {
 
-        function hideTable() {
+            singleDiv.style.visibility = "visible";
+            singleObj.position.set(marker.position.x, marker.position.y, marker.position.z);
+            singleObj.position.z += -5;
+            singleObj.position.y += 1.3;
 
-            queueDiv.style.visibility = "hidden";
-            queueObj.position.set(0, 0, 0);
+        }
+      
+        function hideTable(div, obj) {
+
+            div.style.visibility = "hidden";
+            obj.position.set(0, 0, 0);
 
         }
 
@@ -690,7 +708,111 @@
 
         }
 
+        //UPon Detection of one marker
+        function fillElements(marker){
+
+            var text;
+            var barcode = getValue(marker);
+            var team = getTeam(barcode);
+          
+            if(team == 0){
+               text = blueText;
+
+            }
+            else if(team == 1){
+              text = redText;
+            }
+          
+            for(var i = 0; i < singleElementsArr.length; i++){
+                
+                setColour(singleElementsArr[i], text);
+            }
+            
+            textNodeArr[0].nodeValue = text;
+            textNodeArr[1].nodeValue = getIp(barcode);
+            textNodeArr[2].nodeValue = getHost(barcode);
+          
+
+      }
+     
+      
+        function createSingle(){
+         
+       
+              singleDiv.appendChild(singleTable);
+              singleDiv.style.width = '100px';
+              singleDiv.style.height = '100px';
+              singleDiv.style.visibility = "hidden";
+              singleObj.scale.set(0.01, 0.01, 0.01);
+              scene2.add(singleObj);
+              emptyRows(singleTable, 1);  
+              
+              var firstHeaders = document.createElement("TR");
+              singleTable.appendChild(firstHeaders);
+              var toHead = document.createElement("TH");
+              var toText = document.createTextNode("To");
+              toHead.appendChild(toText);
+              firstHeaders.appendChild(toHead);
+              singleElementsArr.push(toHead);
+              actTimeCell(firstHeaders);
+              emptyRows(singleTable, 2);
+              
+              var secondHeaders = document.createElement("TR");
+              singleTable.appendChild(secondHeaders);
+              var fromHead = document.createElement("TH");
+              var fromText = document.createTextNode("From");
+              fromHead.appendChild(fromText);
+              secondHeaders.appendChild(fromHead);
+              singleElementsArr.push(fromHead);
+              actTimeCell(secondHeaders);
+              emptyRows(singleTable, 2);
+
+       }
+      
+      function actTimeCell(row){
         
+        var actionHead = document.createElement("TH");
+        var actionText = document.createTextNode("Action");
+        actionHead.appendChild(actionText);
+          
+        var dateHead = document.createElement("TH");
+        var dateText = document.createTextNode("Time");
+        dateHead.appendChild(dateText);
+        
+        singleElementsArr.push(actionHead);
+        singleElementsArr.push(dateHead);
+        
+        row.appendChild(actionHead);
+        row.appendChild(dateHead);
+        
+      }
+      function emptyRows(table, number){
+        
+          var emptyRow, emptyCell, emptyNode;
+          for(var i = 0; i < number; i++){
+            emptyRow = document.createElement("TR");
+            table.appendChild(emptyRow);
+            
+            for(var j = 0; j < 3; j++){
+              
+                emptyCell = document.createElement("TD");
+                emptyRow.appendChild(emptyCell);
+                singleElementsArr.push(emptyCell);
+                emptyNode = document.createTextNode(" ");
+                emptyCell.appendChild(emptyNode);
+                textNodeArr.push(emptyNode);
+                
+            }
+            
+          }
+           
+           
+        
+      
+        
+      }
+      
+
       ;(function() {
             ///Section: Queue Table
 
@@ -737,6 +859,7 @@
             })
             markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
             redPointer(marker5);
+        
 
         })()
 
@@ -800,7 +923,10 @@
                 textMesh = new THREE.Mesh(textGeo, textMat);
                 sphereZone.add(textMesh);
             });
-
+            
+           ///Section: CSS3D - One Marker
+           createSingle();
+         
             /// Section: SphereZone
             scene.add(sphereZone);
 
@@ -818,14 +944,15 @@
                     crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
                     crowLogo.position.y += 0.30;
 
-                    ///Section: CSS3D (HardCode)
+                    ///Section: CSS3D - Two Markers (HardCode)
                     if (visibleT == true) {
                         appendData(marker3);
                         appendData(marker5);
-                        setPosVis();
+                        twoPosVis();
                     } else {
-                        hideTable();
+                        hideTable(queueDiv, queueObj);
                     }
+                    hideTable(singleDiv, singleObj);
 
                     ///Section: CURVE STUFF
                     path = new THREE.QuadraticBezierCurve3(
@@ -853,23 +980,46 @@
                     sphereZone.visible = true;
 
                     //One Marker Visible
-                } else if (marker3.visible === true || marker5.visible === true) {
+                } else if (marker3.visible === true){
+                  
+                  
+                    if (visibleT == true) {
+                       onePosVis(marker3); 
+                       fillElements(marker3);
+                    } else {
+                       hideTable(singleDiv, singleObj);
+                    }
+                 
+                   sphereZone.visible = false;
+                    queue = [];
+                   hideTable(queueDiv, queueObj);
+                  
+                }else if(marker5.visible === true) {
+                  
+                    if (visibleT == true) {
+                       onePosVis(marker5); 
+                       fillElements(marker5);
+                    } else {
+                       hideTable(singleDiv, singleObj);
+                    }
+                 
 
                     sphereZone.visible = false;
                     queue = [];
-                    hideTable();
+                    hideTable(queueDiv, queueObj);
 
                     //No Markers Visible
                 } else {
 
                     sphereZone.visible = false;
                     queue = [];
-                    hideTable();
+                     hideTable(queueDiv, queueObj);
+                  hideTable(singleDiv, singleObj);
 
                 }
             })
         })()
-
+      
         /// Section: Render the scene
         onRenderFcts.push(function() {
             renderer.render(scene, camera);

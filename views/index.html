@@ -19,23 +19,17 @@
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/src/threex/threex-armarkercontrols.js"></script>
     <script src="https://rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
     <link rel="stylesheet" href="/style.css">
-  
-   <script src="https://code.jquery.com/jquery-2.2.1.min.js" integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00=" crossorigin="anonymous"></script>
-  
-   
-   
-  
+
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js" integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00=" crossorigin="anonymous"></script>
 
 </head>
 
-  
 <body style="margin : 0px; overflow: hidden; font-family: Monospace;">
 
     <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
     <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/renderers/CSS3DRenderer.js"></script>
     <script>
-   
-      ///Section: Variables
+        ///Section: Variables
         //Variables - Important Variables
         var onRenderFcts = [];
         var scene = new THREE.Scene();
@@ -77,7 +71,7 @@
             color: 0x000000,
             transparent: true,
             opacity: 0.0
-            
+
         });
         var curveLineGeo = new THREE.Geometry();
         var curveLine = new THREE.Line(curveLineGeo, curveLineMat);
@@ -125,7 +119,8 @@
         var redText = "Red Team";
         var elementsArr = [];
         var visibleT = false;
-      
+        var previousType = null;
+
         // renderer.domElement.style.top = '0px'
         //  renderer.domElement.style.left = '0px';
         guiDiv.style.position = 'absolute';
@@ -134,27 +129,20 @@
         guiDiv.style.top = '0px'
         document.body.appendChild(guiDiv);
         guiDiv.appendChild(gui.domElement);
-        
-     
+
         ///Section: Get Available Machines From DB
-      
-        $(function(){
-         
-           
-               $.get('/machines', function(machines){
-                 
-                  for(var i = 0; i < machines.length; i++){
+
+        $(function() {
+
+            $.get('/machines', function(machines) {
+
+                for (var i = 0; i < machines.length; i++) {
                     machineArr[i] = machines[i];
-                  }
-                 
-                  
-              });
-            
-          
-           
-        
-       });
-  
+                }
+
+            });
+
+        });
 
         ///Section: WEBGLRENDERER
         renderer.setClearColor(new THREE.Color('lightgrey'), 0)
@@ -250,47 +238,48 @@
                         });
                         start = firstItem[3];
                         end = firstItem[4];
-                        
+
                         //NEED TO UPDATE IF GOT MORE PATHS
-                        if(queueTable.rows.length == 6){
-                           queueTable.deleteRow(3);
+                        if (queueTable.rows.length == 6) {
+                            queueTable.deleteRow(3);
                         }
-                      
+
                         appendActionRow(firstItem);
-                      
+
                     }
 
                 }
             }
 
         }
-        
-        function appendActionRow(firstItem){
-          
-                var itemRow = document.createElement("TR");
-                var actCell = document.createElement("TD");
-                var actText = document.createTextNode(firstItem[2]);
-                var timeCell = document.createElement("TD");
-                var timeText = document.createTextNode(firstItem[5]);
-                var teamCell = document.createElement("TD");
-                var teamText = document.createTextNode(firstItem[6]);
-                queueTable.appendChild(itemRow);
-                actCell.appendChild(actText);
-                itemRow.appendChild(actCell);
-                timeCell.appendChild(timeText);
-                itemRow.appendChild(timeCell);
-                teamCell.appendChild(teamText);
-                itemRow.appendChild(teamCell);
-                setColour(actCell, null);
-                setColour(timeCell, null);
-                setColour(teamCell, null);
-                        
-          
+
+        function appendActionRow(firstItem) {
+
+            var itemRow = document.createElement("TR");
+            var actCell = document.createElement("TD");
+            var actText = document.createTextNode(firstItem[2]);
+            var timeCell = document.createElement("TD");
+            var timeText = document.createTextNode(firstItem[5]);
+            var teamCell = document.createElement("TD");
+            var teamText = document.createTextNode(firstItem[6]);
+            queueTable.appendChild(itemRow);
+            actCell.appendChild(actText);
+            itemRow.appendChild(actCell);
+            timeCell.appendChild(timeText);
+            itemRow.appendChild(timeCell);
+            teamCell.appendChild(teamText);
+            itemRow.appendChild(teamCell);
+            setColour(actCell, null);
+            setColour(timeCell, null);
+            setColour(teamCell, null);
+
         }
+
         function pushToQueue(type, begin, finish, dateTime, team) {
             var newgeo;
             var newmat;
             var newText;
+
             if (type == 1) {
 
                 newgeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
@@ -412,7 +401,6 @@
                 newText = "Error";
 
             }
-
             queue.push([newgeo, newmat, newText, begin, finish, dateTime, team]);
 
         }
@@ -680,8 +668,8 @@
             queueObj.position.set(0, 0, 0);
 
         }
-        
-         ///Section: Update Ip & Hostname
+
+        ///Section: Update Ip & Hostname
         function appendData(group) {
 
             var barcode = getValue(group);
@@ -703,7 +691,7 @@
         }
 
         
-       ;(function() {
+      ;(function() {
             ///Section: Queue Table
 
             queueDiv.style.width = '100px';
@@ -750,38 +738,40 @@
             markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
             redPointer(marker5);
 
-         
         })()
-
-       
 
         
        ;(function() {
 
             ///Section: Socket.io stuff
             socket.on('action', function(sphere) {
-                srcSph = sphere.o.src;
-                destSph = sphere.o.dest;
+                if (sphere.o.actionType != previousType) {
+                    srcSph = sphere.o.src;
+                    destSph = sphere.o.dest;
 
-                var srcVal = getVal(srcSph);
-                var destVal = getVal(destSph);
+                    var srcVal = getVal(srcSph);
+                    var destVal = getVal(destSph);
 
-                var srcTeam = getTeamVal(srcSph);
+                    var srcTeam = getTeamVal(srcSph);
 
-                var begin = getGrp(srcVal);
-                var finish = getGrp(destVal);
+                    var begin = getGrp(srcVal);
+                    var finish = getGrp(destVal);
 
-                var teamValue;
-                if (srcTeam == 0) {
-                    teamValue = blueText;
-                } else {
-                    teamValue = redText;
+                    var teamValue;
+                    if (srcTeam == 0) {
+                        teamValue = blueText;
+                    } else {
+                        teamValue = redText;
+                    }
+
+                    if (begin.visible === true && finish.visible === true) {
+
+                        pushToQueue(sphere.o.actionType, begin, finish, sphere.o.dateTime, teamValue);
+
+                    }
+
+                    previousType = sphere.o.actionType;
                 }
-
-                if (begin.visible === true && finish.visible === true) {
-                    pushToQueue(sphere.o.actionType, begin, finish, sphere.o.dateTime, teamValue);
-                }
-
             });
 
             /// Section: CROW LOGO
@@ -816,7 +806,7 @@
 
             onRenderFcts.push(function() {
                 popFromQueue();
-            
+
                 //Two Markers Visible
                 if (marker3.visible === true && marker5.visible === true) {
 
@@ -851,7 +841,6 @@
 
                     }
                     curveLineGeo.verticesNeedUpdate = true;
-                
 
                     ///Section: Action Type Text
                     textMesh.geometry.center();
@@ -902,8 +891,6 @@
 
         })
     </script>
-
-
 
 </body>
 

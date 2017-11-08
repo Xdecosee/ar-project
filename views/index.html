@@ -121,11 +121,14 @@
         var visibleT = false;
         var previousType = null;
         var doubleEmptyRows = [];
-      
+        var doubleVis = [];
+        var testOne, testTwo, doubleData, doubleMatch, testIndex, firstMarker, secondMarker, index;
+
         //Variables - Machine Info (One Marker)
-      
+
         var singleElementsArr = [];
         var textNodeArr = [];
+        var singleVis = [];
 
         // renderer.domElement.style.top = '0px'
         //  renderer.domElement.style.left = '0px';
@@ -221,7 +224,7 @@
             }
 
         });
-       
+
         ///Section: Create Divs Needed
         var queueDiv = document.createElement('div');
         var queueTable = document.createElement("TABLE");
@@ -229,29 +232,19 @@
         var singleDiv = document.createElement('div');
         var singleTable = document.createElement("TABLE");
         var singleObj = new THREE.CSS3DObject(singleDiv);
-      
-        var singleVis = [];
-        var doubleVis = [];
-        var firstMarker, secondMarker, index;
-        var testOne, testTwo, testThree, dataTest, arr;
-        var testIndex;
 
-        
-      
-         ///Section: Sphere Queue
+        ///Section: Sphere Queue
         function popFromQueue() {
 
             if (queue.length > 0) {
                 firstItem = queue[0];
-              
-              
+
                 if (sphere.visible == false) {
                     sphere.geometry = firstItem[0];
                     sphere.material = firstItem[1];
                     queue.shift();
                     sphere.visible = true;
-                  
-                  
+
                     if (firstItem[3].visible === true && firstItem[4].visible === true) {
 
                         loader = new THREE.FontLoader().load(textUrl, function(font) {
@@ -259,100 +252,82 @@
                         });
                         start = firstItem[3];
                         end = firstItem[4];
-                         
 
-                        for(var i = 0; i< doubleVis.length; i++){
-		
+                        for (var i = 0; i < doubleVis.length; i++) {
+
                             testOne = doubleVis[i][0];
                             testTwo = doubleVis[i][1];
 
-                              if((testOne == firstItem[3] && testTwo == firstItem[4]) || (testOne ==firstItem[4] && testTwo == firstItem[3])){
-                                  arr = doubleVis[i];
-                                 
-                                      
-                                  for(var j = 2 ; j < arr.length; j++){
-                                       testIndex = j - 2;
-                                 
-                                        doubleEmptyRows[testIndex][0].nodeValue = arr[j][0];
-                                        doubleEmptyRows[testIndex][1].nodeValue = arr[j][1];
-                                        doubleEmptyRows[testIndex][2].nodeValue = arr[j][2];
-                                           
-                            
+                            if ((testOne == firstItem[3] && testTwo == firstItem[4]) || (testOne == firstItem[4] && testTwo == firstItem[3])) {
+                                doubleMatch = doubleVis[i];
 
-                                  }
+                                for (var j = 2; j < doubleMatch.length; j++) {
+                                    testIndex = j - 2;
 
-	                    	      }
+                                    doubleEmptyRows[testIndex][0].nodeValue = doubleMatch[j][0];
+                                    doubleEmptyRows[testIndex][1].nodeValue = doubleMatch[j][1];
+                                    doubleEmptyRows[testIndex][2].nodeValue = doubleMatch[j][2];
 
+                                }
 
-	
-	                      }
+                            }
 
+                        }
 
                     }
-                    
-                 
 
                 }
-              
-              
-              
+
             }
 
         }
 
-        function appendActionTwo(newText, dateTime, source) {
-  
+        function genArrTwo(newText, dateTime, source) {
+
             var data = [];
             data.push(newText);
             data.push(dateTime);
             data.push(source);
-           
             return data;
 
         }
-        
-        
-        function appendActionOne(firstItem, direction){
+
+        function appendActionOne(firstItem, direction) {
             var itemRow = document.createElement("TR");
-            
+
             var directionCell = document.createElement("TD");
             var directionText;
-            if(direction == 1){
-               directionText = document.createTextNode("Inbound");
+            if (direction == 1) {
+                directionText = document.createTextNode("Inbound");
 
-            }
-            else if (direction == 0){
-              directionText = document.createTextNode("Outbound");
-          
+            } else if (direction == 0) {
+                directionText = document.createTextNode("Outbound");
+
             }
             directionCell.appendChild(directionText);
             itemRow.appendChild(directionCell);
             setColour(directionCell, null);
-          
+
             var ipCell = document.createElement("TD");
             var ipText = document.createTextNode(firstItem[7]);
             ipCell.appendChild(ipText);
             itemRow.appendChild(ipCell);
-           setColour(ipCell, null);
-          
-          
+            setColour(ipCell, null);
+
             var actCell = document.createElement("TD");
             var actText = document.createTextNode(firstItem[2]);
             actCell.appendChild(actText);
             itemRow.appendChild(actCell);
-           setColour(actCell, null);
-          
-          
+            setColour(actCell, null);
+
             var timeCell = document.createElement("TD");
             var timeText = document.createTextNode(firstItem[5]);
             timeCell.appendChild(timeText);
             itemRow.appendChild(timeCell);
-           setColour(timeCell, null);
-          
-        
+            setColour(timeCell, null);
+
             singleTable.appendChild(itemRow);
-        
-          
+
         }
 
         function pushToQueue(type, begin, finish, source, dateTime) {
@@ -482,23 +457,22 @@
 
             }
             queue.push([newgeo, newmat, newText, begin, finish]);
-          
-          
-            for( var i = 0; i < doubleVis.length; i++){
+
+            for (var i = 0; i < doubleVis.length; i++) {
                 testOne = doubleVis[i][0];
                 testTwo = doubleVis[i][1];
-                if((testOne == begin && testTwo == finish) || (testOne ==finish && testTwo == begin)){
-                    
-                    dataTest = appendActionTwo(newText, dateTime, source);
-                    
-                    if(doubleVis[i].length == 5){
-                      doubleVis[i].splice(2,1);
-                    }
-                   
-                    doubleVis[i].push(dataTest);
+                if ((testOne == begin && testTwo == finish) || (testOne == finish && testTwo == begin)) {
 
-		            }
-             }
+                    doubleData = genArrTwo(newText, dateTime, source);
+
+                    if (doubleVis[i].length == 5) {
+                        doubleVis[i].splice(2, 1);
+                    }
+
+                    doubleVis[i].push(doubleData);
+
+                }
+            }
 
         }
 
@@ -756,8 +730,8 @@
             queueObj.position.z += -5;
 
         }
-        
-          function onePosVis(marker) {
+
+        function onePosVis(marker) {
 
             singleDiv.style.visibility = "visible";
             singleObj.position.set(marker.position.x, marker.position.y, marker.position.z);
@@ -765,7 +739,7 @@
             singleObj.position.y += 1.3;
 
         }
-      
+
         function hideTable(div, obj) {
 
             div.style.visibility = "hidden";
@@ -795,142 +769,72 @@
         }
 
         //UPon Detection of one marker
-        function fillElements(marker){
+        function fillElements(marker) {
 
             var text;
             var barcode = getValue(marker);
             var team = getTeam(barcode);
-          
-            if(team == 0){
-               text = blueText;
 
+            if (team == 0) {
+                text = blueText;
+
+            } else if (team == 1) {
+                text = redText;
             }
-            else if(team == 1){
-              text = redText;
-            }
-          
-            for(var i = 0; i < singleElementsArr.length; i++){
-                
+
+            for (var i = 0; i < singleElementsArr.length; i++) {
+
                 setColour(singleElementsArr[i], text);
             }
-            
+
             textNodeArr[0].nodeValue = text;
             textNodeArr[1].nodeValue = getIp(barcode);
             textNodeArr[2].nodeValue = getHost(barcode);
-          
 
-      }
-     
-      
-        function createSingle(){
-         
-       
-              singleDiv.appendChild(singleTable);
-              singleDiv.style.width = '100px';
-              singleDiv.style.height = '100px';
-              singleDiv.style.visibility = "hidden";
-              singleObj.scale.set(0.01, 0.01, 0.01);
-              scene2.add(singleObj);
-          
-              emptyRow(singleTable);  
-              
-              var rowHeaders = document.createElement("TR");
-              singleTable.appendChild(rowHeaders);
-        
-              var directionHead = document.createElement("TH");
-              var directionText = document.createTextNode("Direction");
-              directionHead.appendChild(directionText);
-              rowHeaders.appendChild(directionHead);
-              setColour(directionHead, null);
-
-          
-              var ipHead = document.createElement("TH");
-              var ipText = document.createTextNode("IP");
-              ipHead.appendChild(ipText);
-              rowHeaders.appendChild(ipHead);
-              setColour(ipHead, null);
-          
-              var actionHead = document.createElement("TH");
-              var actionText = document.createTextNode("Action");
-              actionHead.appendChild(actionText);
-              rowHeaders.appendChild(actionHead);
-              setColour(actionHead, null);
-
-              var dateHead = document.createElement("TH");
-              var dateText = document.createTextNode("Time");
-              dateHead.appendChild(dateText);
-              rowHeaders.appendChild(dateHead);
-              setColour(dateHead, null);
-          
-              
-        
-     
-       }
-      
-  
-      function emptyRow(table){
-        
-          var emptyRow, emptyCell, emptyNode;
-          emptyRow = document.createElement("TR");
-          table.appendChild(emptyRow);
-            
-            for(var j = 0; j < 3; j++){
-              
-                emptyCell = document.createElement("TD");
-                emptyRow.appendChild(emptyCell);
-                singleElementsArr.push(emptyCell);
-                emptyNode = document.createTextNode(" ");
-                emptyCell.appendChild(emptyNode);
-                textNodeArr.push(emptyNode);
-                
-            }
-            
-      
-        
-      }
-      
-        function doubleEmpty(){
-          
-          
-          for(var i = 0; i < 3 ; i++){
-            var itemRow = document.createElement("TR");
-            var actCell = document.createElement("TD");
-            var timeCell = document.createElement("TD");
-            var teamCell = document.createElement("TD");
-          
-            itemRow.appendChild(actCell);
-            itemRow.appendChild(timeCell);
-            itemRow.appendChild(teamCell);
-            
-            var actNode = document.createTextNode(" ");
-            actCell.appendChild(actNode);
-            var timeNode = document.createTextNode(" ");
-            timeCell.appendChild(timeNode);
-            var teamNode = document.createTextNode(" ");
-            teamCell.appendChild(teamNode);
-            
-          
-            queueTable.appendChild(itemRow);
-            
-            setColour(actCell, null);
-            setColour(timeCell, null);
-            setColour(teamCell, null);
-            
-            var rowarr = [];
-            rowarr.push(actNode);
-            rowarr.push(timeNode);
-            rowarr.push(teamNode);
-            
-            doubleEmptyRows.push(rowarr);
-            
-
-          
-          }
         }
 
-      ;(function() {
-            ///Section: Queue Table
+        function createSingle() {
 
+            singleDiv.appendChild(singleTable);
+            singleDiv.style.width = '100px';
+            singleDiv.style.height = '100px';
+            singleDiv.style.visibility = "hidden";
+            singleObj.scale.set(0.01, 0.01, 0.01);
+            scene2.add(singleObj);
+
+            emptyRow(singleTable);
+
+            var rowHeaders = document.createElement("TR");
+            singleTable.appendChild(rowHeaders);
+
+            var directionHead = document.createElement("TH");
+            var directionText = document.createTextNode("Direction");
+            directionHead.appendChild(directionText);
+            rowHeaders.appendChild(directionHead);
+            setColour(directionHead, null);
+
+            var ipHead = document.createElement("TH");
+            var ipText = document.createTextNode("IP");
+            ipHead.appendChild(ipText);
+            rowHeaders.appendChild(ipHead);
+            setColour(ipHead, null);
+
+            var actionHead = document.createElement("TH");
+            var actionText = document.createTextNode("Action");
+            actionHead.appendChild(actionText);
+            rowHeaders.appendChild(actionHead);
+            setColour(actionHead, null);
+
+            var dateHead = document.createElement("TH");
+            var dateText = document.createTextNode("Time");
+            dateHead.appendChild(dateText);
+            rowHeaders.appendChild(dateHead);
+            setColour(dateHead, null);
+
+        }
+        
+        function createDouble(){
+          
             queueDiv.style.width = '100px';
             queueDiv.style.height = '100px';
             queueDiv.style.visibility = "hidden";
@@ -957,7 +861,68 @@
             setColour(dateHead, null);
             setColour(sourceHead, null);
             doubleEmpty();
+          
+        }
+
+        function emptyRow(table) {
+
+            var emptyRow, emptyCell, emptyNode;
+            emptyRow = document.createElement("TR");
+            table.appendChild(emptyRow);
+
+            for (var j = 0; j < 3; j++) {
+
+                emptyCell = document.createElement("TD");
+                emptyRow.appendChild(emptyCell);
+                singleElementsArr.push(emptyCell);
+                emptyNode = document.createTextNode(" ");
+                emptyCell.appendChild(emptyNode);
+                textNodeArr.push(emptyNode);
+
+            }
+
+        }
+
+        function doubleEmpty() {
+
+            for (var i = 0; i < 3; i++) {
+                var itemRow = document.createElement("TR");
+                var actCell = document.createElement("TD");
+                var timeCell = document.createElement("TD");
+                var teamCell = document.createElement("TD");
+
+                itemRow.appendChild(actCell);
+                itemRow.appendChild(timeCell);
+                itemRow.appendChild(teamCell);
+
+                var actNode = document.createTextNode(" ");
+                actCell.appendChild(actNode);
+                var timeNode = document.createTextNode(" ");
+                timeCell.appendChild(timeNode);
+                var teamNode = document.createTextNode(" ");
+                teamCell.appendChild(teamNode);
+
+                queueTable.appendChild(itemRow);
+
+                setColour(actCell, null);
+                setColour(timeCell, null);
+                setColour(teamCell, null);
+
+                var rowArr = [];
+                rowArr.push(actNode);
+                rowArr.push(timeNode);
+                rowArr.push(teamNode);
+
+                doubleEmptyRows.push(rowArr);
+
+            }
+        }
+
         
+        ;(function() {
+            ///Section: Queue Table
+            createDouble();
+         
             /// Section: generate Markers (HardCode)
             scene.add(marker3);
             controls3 = new THREEx.ArMarkerControls(arToolkitContext, marker3, {
@@ -975,25 +940,23 @@
             })
             markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
             redPointer(marker5);
-        
-        
-            for (var i = 0; i < markerVals.length; i++){
+
+            for (var i = 0; i < markerVals.length; i++) {
                 var doubleArr = [];
                 var singleArr = [];
 
                 firstMarker = markerVals[i][1];
                 index = i + 1;
-              
-                for(var j = index; j < markerVals.length; j++){
+
+                for (var j = index; j < markerVals.length; j++) {
                     secondMarker = markerVals[j][1];
                     doubleArr.push(firstMarker, secondMarker);
                     doubleVis.push(doubleArr);
-              }
-              singleArr.push(firstMarker);
-              singleVis.push(singleArr);
+                }
+                singleArr.push(firstMarker);
+                singleVis.push(singleArr);
             }
-              
-           
+
         })()
 
         
@@ -1020,10 +983,9 @@
                         teamValue = redText;
                     }
 
-                    if(begin.visible === true && finish.visible === true){
+                    if (begin.visible === true && finish.visible === true) {
                         pushToQueue(sphere.o.actionType, begin, finish, teamValue, sphere.o.dateTime);
                     }
-                  
 
                     previousType = sphere.o.actionType;
                 }
@@ -1055,10 +1017,10 @@
                 textMesh = new THREE.Mesh(textGeo, textMat);
                 sphereZone.add(textMesh);
             });
-            
-           ///Section: CSS3D - One Marker
-           createSingle();
-         
+
+            ///Section: CSS3D - One Marker
+            createSingle();
+
             /// Section: SphereZone
             scene.add(sphereZone);
 
@@ -1112,29 +1074,27 @@
                     sphereZone.visible = true;
 
                     //One Marker Visible
-                } else if (marker3.visible === true){
-                  
-                  
+                } else if (marker3.visible === true) {
+
                     if (visibleT == true) {
-                       onePosVis(marker3); 
-                       fillElements(marker3);
+                        onePosVis(marker3);
+                        fillElements(marker3);
                     } else {
-                       hideTable(singleDiv, singleObj);
+                        hideTable(singleDiv, singleObj);
                     }
-                 
-                   sphereZone.visible = false;
+
+                    sphereZone.visible = false;
                     queue = [];
-                   hideTable(queueDiv, queueObj);
-                  
-                }else if(marker5.visible === true) {
-                  
+                    hideTable(queueDiv, queueObj);
+
+                } else if (marker5.visible === true) {
+
                     if (visibleT == true) {
-                       onePosVis(marker5); 
-                       fillElements(marker5);
+                        onePosVis(marker5);
+                        fillElements(marker5);
                     } else {
-                       hideTable(singleDiv, singleObj);
+                        hideTable(singleDiv, singleObj);
                     }
-                 
 
                     sphereZone.visible = false;
                     queue = [];
@@ -1145,13 +1105,13 @@
 
                     sphereZone.visible = false;
                     queue = [];
-                     hideTable(queueDiv, queueObj);
-                  hideTable(singleDiv, singleObj);
+                    hideTable(queueDiv, queueObj);
+                    hideTable(singleDiv, singleObj);
 
                 }
             })
         })()
-      
+
         /// Section: Render the scene
         onRenderFcts.push(function() {
             renderer.render(scene, camera);

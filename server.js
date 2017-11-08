@@ -19,11 +19,12 @@ http.listen(3000, function() {
 
 var MongoDB = require('mongodb');
 
-var oplogurl = 'mongodb://tester:cR0wTeSt3r@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,' +
+var log = process.env.LOG;
+var oplogurl = 'mongodb://'+ log + '@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,' +
     'arproject-shard-00-02-cjsdl.mongodb.net:27017/local?ssl=true&replicaSet=ARPROJECT-shard-0&authSource=admin';
 
 
-var arurl = 'mongodb://tester:cR0wTeSt3r@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,' +
+var arurl = 'mongodb://'+ log + '@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,' +
     'arproject-shard-00-02-cjsdl.mongodb.net:27017/ARDB?ssl=true&replicaSet=ARPROJECT-shard-0&authSource=admin';
  
 

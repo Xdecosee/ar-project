@@ -120,6 +120,7 @@
         var elementsArr = [];
         var visibleT = false;
         var previousType = null;
+        var doubleEmptyRows = [];
       
         //Variables - Machine Info (One Marker)
       
@@ -228,6 +229,13 @@
         var singleDiv = document.createElement('div');
         var singleTable = document.createElement("TABLE");
         var singleObj = new THREE.CSS3DObject(singleDiv);
+      
+        var singleVis = [];
+        var doubleVis = [];
+        var firstMarker, secondMarker, index;
+        var testOne, testTwo, testThree, dataTest, arr;
+        var testIndex;
+
         
       
          ///Section: Sphere Queue
@@ -251,25 +259,37 @@
                         });
                         start = firstItem[3];
                         end = firstItem[4];
+                         
 
-                        //NEED TO UPDATE IF GOT MORE PATHS
-                        if (queueTable.rows.length == 6) {
-                            queueTable.deleteRow(3);
-                        }
+                        for(var i = 0; i< doubleVis.length; i++){
+		
+                            testOne = doubleVis[i][0];
+                            testTwo = doubleVis[i][1];
 
-                        appendActionTwo(firstItem);
-                      
+                              if((testOne == firstItem[3] && testTwo == firstItem[4]) || (testOne ==firstItem[4] && testTwo == firstItem[3])){
+                                  arr = doubleVis[i];
+                                 
+                                      
+                                  for(var j = 2 ; j < arr.length; j++){
+                                       testIndex = j - 2;
+                                 
+                                        doubleEmptyRows[testIndex][0].nodeValue = arr[j][0];
+                                        doubleEmptyRows[testIndex][1].nodeValue = arr[j][1];
+                                        doubleEmptyRows[testIndex][2].nodeValue = arr[j][2];
+                                           
+                            
+
+                                  }
+
+	                    	      }
+
+
+	
+	                      }
+
 
                     }
-                      if(firstItem[3].visible === true){
-                   
-                          appendActionOne(firstItem, 0);
-                      }
-                      else if(firstItem[4].visible === true){
-                   
-                          appendActionOne(firstItem, 1);
-                      }
-
+                    
                  
 
                 }
@@ -280,28 +300,18 @@
 
         }
 
-        function appendActionTwo(firstItem) {
-
-            var itemRow = document.createElement("TR");
-            var actCell = document.createElement("TD");
-            var actText = document.createTextNode(firstItem[2]);
-            var timeCell = document.createElement("TD");
-            var timeText = document.createTextNode(firstItem[5]);
-            var teamCell = document.createElement("TD");
-            var teamText = document.createTextNode(firstItem[6]);
-            queueTable.appendChild(itemRow);
-            actCell.appendChild(actText);
-            itemRow.appendChild(actCell);
-            timeCell.appendChild(timeText);
-            itemRow.appendChild(timeCell);
-            teamCell.appendChild(teamText);
-            itemRow.appendChild(teamCell);
-            setColour(actCell, null);
-            setColour(timeCell, null);
-            setColour(teamCell, null);
+        function appendActionTwo(newText, dateTime, source) {
+  
+            var data = [];
+            data.push(newText);
+            data.push(dateTime);
+            data.push(source);
+           
+            return data;
 
         }
-      
+        
+        
         function appendActionOne(firstItem, direction){
             var itemRow = document.createElement("TR");
             
@@ -341,12 +351,11 @@
           
         
             singleTable.appendChild(itemRow);
-          
-            console.log("success!");
+        
           
         }
 
-        function pushToQueue(type, begin, finish, dateTime, team, dest) {
+        function pushToQueue(type, begin, finish, source, dateTime) {
             var newgeo;
             var newmat;
             var newText;
@@ -472,7 +481,24 @@
                 newText = "Error";
 
             }
-            queue.push([newgeo, newmat, newText, begin, finish, dateTime, team, dest]);
+            queue.push([newgeo, newmat, newText, begin, finish]);
+          
+          
+            for( var i = 0; i < doubleVis.length; i++){
+                testOne = doubleVis[i][0];
+                testTwo = doubleVis[i][1];
+                if((testOne == begin && testTwo == finish) || (testOne ==finish && testTwo == begin)){
+                    
+                    dataTest = appendActionTwo(newText, dateTime, source);
+                    
+                    if(doubleVis[i].length == 5){
+                      doubleVis[i].splice(2,1);
+                    }
+                   
+                    doubleVis[i].push(dataTest);
+
+		            }
+             }
 
         }
 
@@ -863,6 +889,44 @@
         
       }
       
+        function doubleEmpty(){
+          
+          
+          for(var i = 0; i < 3 ; i++){
+            var itemRow = document.createElement("TR");
+            var actCell = document.createElement("TD");
+            var timeCell = document.createElement("TD");
+            var teamCell = document.createElement("TD");
+          
+            itemRow.appendChild(actCell);
+            itemRow.appendChild(timeCell);
+            itemRow.appendChild(teamCell);
+            
+            var actNode = document.createTextNode(" ");
+            actCell.appendChild(actNode);
+            var timeNode = document.createTextNode(" ");
+            timeCell.appendChild(timeNode);
+            var teamNode = document.createTextNode(" ");
+            teamCell.appendChild(teamNode);
+            
+          
+            queueTable.appendChild(itemRow);
+            
+            setColour(actCell, null);
+            setColour(timeCell, null);
+            setColour(teamCell, null);
+            
+            var rowarr = [];
+            rowarr.push(actNode);
+            rowarr.push(timeNode);
+            rowarr.push(teamNode);
+            
+            doubleEmptyRows.push(rowarr);
+            
+
+          
+          }
+        }
 
       ;(function() {
             ///Section: Queue Table
@@ -892,7 +956,8 @@
             setColour(actionHead, null);
             setColour(dateHead, null);
             setColour(sourceHead, null);
-
+            doubleEmpty();
+        
             /// Section: generate Markers (HardCode)
             scene.add(marker3);
             controls3 = new THREEx.ArMarkerControls(arToolkitContext, marker3, {
@@ -911,7 +976,24 @@
             markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
             redPointer(marker5);
         
+        
+            for (var i = 0; i < markerVals.length; i++){
+                var doubleArr = [];
+                var singleArr = [];
 
+                firstMarker = markerVals[i][1];
+                index = i + 1;
+              
+                for(var j = index; j < markerVals.length; j++){
+                    secondMarker = markerVals[j][1];
+                    doubleArr.push(firstMarker, secondMarker);
+                    doubleVis.push(doubleArr);
+              }
+              singleArr.push(firstMarker);
+              singleVis.push(singleArr);
+            }
+              
+           
         })()
 
         
@@ -938,8 +1020,10 @@
                         teamValue = redText;
                     }
 
-                 
-                    pushToQueue(sphere.o.actionType, begin, finish, sphere.o.dateTime, teamValue, destSph);
+                    if(begin.visible === true && finish.visible === true){
+                        pushToQueue(sphere.o.actionType, begin, finish, teamValue, sphere.o.dateTime);
+                    }
+                  
 
                     previousType = sphere.o.actionType;
                 }

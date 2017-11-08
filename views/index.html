@@ -256,6 +256,7 @@
                         }
 
                         appendActionRow(firstItem);
+                      
 
                     }
 
@@ -745,53 +746,48 @@
               singleDiv.style.visibility = "hidden";
               singleObj.scale.set(0.01, 0.01, 0.01);
               scene2.add(singleObj);
-              emptyRows(singleTable, 1);  
+          
+              emptyRow(singleTable);  
               
-              var firstHeaders = document.createElement("TR");
-              singleTable.appendChild(firstHeaders);
-              var toHead = document.createElement("TH");
-              var toText = document.createTextNode("To");
-              toHead.appendChild(toText);
-              firstHeaders.appendChild(toHead);
-              singleElementsArr.push(toHead);
-              actTimeCell(firstHeaders);
-              emptyRows(singleTable, 2);
-              
-              var secondHeaders = document.createElement("TR");
-              singleTable.appendChild(secondHeaders);
-              var fromHead = document.createElement("TH");
-              var fromText = document.createTextNode("From");
-              fromHead.appendChild(fromText);
-              secondHeaders.appendChild(fromHead);
-              singleElementsArr.push(fromHead);
-              actTimeCell(secondHeaders);
-              emptyRows(singleTable, 2);
+              var rowHeaders = document.createElement("TR");
+              singleTable.appendChild(rowHeaders);
+        
+              var directionHead = document.createElement("TH");
+              var directionText = document.createTextNode("Direction");
+              directionHead.appendChild(directionText);
+              rowHeaders.appendChild(directionHead);
+              setColour(directionHead, null);
 
+          
+              var ipHead = document.createElement("TH");
+              var ipText = document.createTextNode("IP");
+              ipHead.appendChild(ipText);
+              rowHeaders.appendChild(ipHead);
+              setColour(ipHead, null);
+          
+              var actionHead = document.createElement("TH");
+              var actionText = document.createTextNode("Action");
+              actionHead.appendChild(actionText);
+              rowHeaders.appendChild(actionHead);
+              setColour(actionHead, null);
+
+              var dateHead = document.createElement("TH");
+              var dateText = document.createTextNode("Time");
+              dateHead.appendChild(dateText);
+              rowHeaders.appendChild(dateHead);
+              setColour(dateHead, null);
+          
+              
+        
+     
        }
       
-      function actTimeCell(row){
-        
-        var actionHead = document.createElement("TH");
-        var actionText = document.createTextNode("Action");
-        actionHead.appendChild(actionText);
-          
-        var dateHead = document.createElement("TH");
-        var dateText = document.createTextNode("Time");
-        dateHead.appendChild(dateText);
-        
-        singleElementsArr.push(actionHead);
-        singleElementsArr.push(dateHead);
-        
-        row.appendChild(actionHead);
-        row.appendChild(dateHead);
-        
-      }
-      function emptyRows(table, number){
+  
+      function emptyRow(table){
         
           var emptyRow, emptyCell, emptyNode;
-          for(var i = 0; i < number; i++){
-            emptyRow = document.createElement("TR");
-            table.appendChild(emptyRow);
+          emptyRow = document.createElement("TR");
+          table.appendChild(emptyRow);
             
             for(var j = 0; j < 3; j++){
               
@@ -804,10 +800,6 @@
                 
             }
             
-          }
-           
-           
-        
       
         
       }

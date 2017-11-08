@@ -235,14 +235,16 @@
 
             if (queue.length > 0) {
                 firstItem = queue[0];
-
+              
+              
                 if (sphere.visible == false) {
                     sphere.geometry = firstItem[0];
                     sphere.material = firstItem[1];
                     queue.shift();
                     sphere.visible = true;
-
-                    if (marker3.visible === true && marker5.visible === true) {
+                  
+                  
+                    if (firstItem[3].visible === true && firstItem[4].visible === true) {
 
                         loader = new THREE.FontLoader().load(textUrl, function(font) {
                             loadText(firstItem[2], firstItem[1], font);
@@ -255,17 +257,30 @@
                             queueTable.deleteRow(3);
                         }
 
-                        appendActionRow(firstItem);
+                        appendActionTwo(firstItem);
                       
 
                     }
+                      if(firstItem[3].visible === true){
+                   
+                          appendActionOne(firstItem, 0);
+                      }
+                      else if(firstItem[4].visible === true){
+                   
+                          appendActionOne(firstItem, 1);
+                      }
+
+                 
 
                 }
+              
+              
+              
             }
 
         }
 
-        function appendActionRow(firstItem) {
+        function appendActionTwo(firstItem) {
 
             var itemRow = document.createElement("TR");
             var actCell = document.createElement("TD");
@@ -286,8 +301,52 @@
             setColour(teamCell, null);
 
         }
+      
+        function appendActionOne(firstItem, direction){
+            var itemRow = document.createElement("TR");
+            
+            var directionCell = document.createElement("TD");
+            var directionText;
+            if(direction == 1){
+               directionText = document.createTextNode("Inbound");
 
-        function pushToQueue(type, begin, finish, dateTime, team) {
+            }
+            else if (direction == 0){
+              directionText = document.createTextNode("Outbound");
+          
+            }
+            directionCell.appendChild(directionText);
+            itemRow.appendChild(directionCell);
+            setColour(directionCell, null);
+          
+            var ipCell = document.createElement("TD");
+            var ipText = document.createTextNode(firstItem[7]);
+            ipCell.appendChild(ipText);
+            itemRow.appendChild(ipCell);
+           setColour(ipCell, null);
+          
+          
+            var actCell = document.createElement("TD");
+            var actText = document.createTextNode(firstItem[2]);
+            actCell.appendChild(actText);
+            itemRow.appendChild(actCell);
+           setColour(actCell, null);
+          
+          
+            var timeCell = document.createElement("TD");
+            var timeText = document.createTextNode(firstItem[5]);
+            timeCell.appendChild(timeText);
+            itemRow.appendChild(timeCell);
+           setColour(timeCell, null);
+          
+        
+            singleTable.appendChild(itemRow);
+          
+            console.log("success!");
+          
+        }
+
+        function pushToQueue(type, begin, finish, dateTime, team, dest) {
             var newgeo;
             var newmat;
             var newText;
@@ -413,7 +472,7 @@
                 newText = "Error";
 
             }
-            queue.push([newgeo, newmat, newText, begin, finish, dateTime, team]);
+            queue.push([newgeo, newmat, newText, begin, finish, dateTime, team, dest]);
 
         }
 
@@ -879,11 +938,8 @@
                         teamValue = redText;
                     }
 
-                    if (begin.visible === true && finish.visible === true) {
-
-                        pushToQueue(sphere.o.actionType, begin, finish, sphere.o.dateTime, teamValue);
-
-                    }
+                 
+                    pushToQueue(sphere.o.actionType, begin, finish, sphere.o.dateTime, teamValue, destSph);
 
                     previousType = sphere.o.actionType;
                 }

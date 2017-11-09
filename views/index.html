@@ -217,12 +217,10 @@
 
         ///Section: Dat.GUI
         var FizzyText = function() {
-            this.View = function() {};
             this.Info = false;
         };
 
         var text = new FizzyText();
-        gui.add(text, 'View').name('Switch View');
         var controls = gui.add(text, 'Info').name('More Info').listen().onChange(function(newValue) {
 
             if (visibleT == false) {
@@ -875,7 +873,6 @@
 
                 if (testThree == group) {
                     singleData = genArrOne(direction, ip, action, dateTime);
-                    console.log(singleData);
 
                     if (singleVis[i].length == 4) {
                         singleVis[i].splice(1, 1);
@@ -911,6 +908,7 @@
 
             }
         }
+      
       ;(function() {
             ///Section: CSS3D - One Marker
             createDouble();

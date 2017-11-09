@@ -868,49 +868,7 @@
             }
         }
 
-        
-      ;(function() {
-            ///Section: CSS3D - One Marker
-            createDouble();
-            createSingle();
-
-            /// Section: generate Markers (HardCode)
-            scene.add(marker3);
-            controls3 = new THREEx.ArMarkerControls(arToolkitContext, marker3, {
-                type: 'barcode',
-                barcodeValue: 3
-            })
-            markerVals.push([controls3.parameters.barcodeValue, controls3.object3d]);
-            bluePointer(marker3);
-
-            scene.add(marker5);
-            controls5 = new THREEx.ArMarkerControls(arToolkitContext, marker5, {
-                type: 'barcode',
-                barcodeValue: 5
-
-            })
-            markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
-            redPointer(marker5);
-
-            for (var i = 0; i < markerVals.length; i++) {
-                var doubleArr = [];
-                var singleArr = [];
-
-                firstMarker = markerVals[i][1];
-                index = i + 1;
-
-                for (var j = index; j < markerVals.length; j++) {
-                    secondMarker = markerVals[j][1];
-                    doubleArr.push(firstMarker, secondMarker);
-                    doubleVis.push(doubleArr);
-                }
-                singleArr.push(firstMarker);
-                singleVis.push(singleArr);
-            }
-
-        })()
-
-        function singleEmptyPush(group, dateTime, action, ip, direction) {
+         function singleEmptyPush(group, dateTime, action, ip, direction) {
 
             for (var i = 0; i < singleVis.length; i++) {
                 testThree = singleVis[i][0];
@@ -953,6 +911,48 @@
 
             }
         }
+      ;(function() {
+            ///Section: CSS3D - One Marker
+            createDouble();
+            createSingle();
+
+            /// Section: generate Markers (HardCode)
+            scene.add(marker3);
+            controls3 = new THREEx.ArMarkerControls(arToolkitContext, marker3, {
+                type: 'barcode',
+                barcodeValue: 3
+            })
+            markerVals.push([controls3.parameters.barcodeValue, controls3.object3d]);
+            bluePointer(marker3);
+
+            scene.add(marker5);
+            controls5 = new THREEx.ArMarkerControls(arToolkitContext, marker5, {
+                type: 'barcode',
+                barcodeValue: 5
+
+            })
+            markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
+            redPointer(marker5);
+
+            for (var i = 0; i < markerVals.length; i++) {
+                var doubleArr = [];
+                var singleArr = [];
+
+                firstMarker = markerVals[i][1];
+                index = i + 1;
+
+                for (var j = index; j < markerVals.length; j++) {
+                    secondMarker = markerVals[j][1];
+                    doubleArr.push(firstMarker, secondMarker);
+                    doubleVis.push(doubleArr);
+                }
+                singleArr.push(firstMarker);
+                singleVis.push(singleArr);
+            }
+
+        })()
+
+       
       
        ;(function() {
 

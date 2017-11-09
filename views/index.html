@@ -122,13 +122,16 @@
         var previousType = null;
         var doubleEmptyRows = [];
         var doubleVis = [];
-        var testOne, testTwo, doubleData, doubleMatch, testIndex, firstMarker, secondMarker, index;
+        var testOne, testTwo, doubleData, doubleMatch, grpOne, grpTwo, twoIndex, groupOne, groupTwo;
+        var firstMarker, secondMarker, index;
 
         //Variables - Machine Info (One Marker)
 
         var singleElementsArr = [];
         var textNodeArr = [];
         var singleVis = [];
+        var singleEmptyRows = [];
+        var testThree, singleData, singleMatch, grpThree, oneIndex, groupThree;
 
         // renderer.domElement.style.top = '0px'
         //  renderer.domElement.style.left = '0px';
@@ -182,7 +185,12 @@
         })
         window.addEventListener('resize', function() {
             onResize()
-        })
+                //  camera.aspect = window.innerWidth / window.innerHeight;
+                //camera.updateProjectionMatrix();
+                //  renderer.setSize( window.innerWidth, window.innerHeight );
+                // renderer2.setSize(window.innerWidth,window.innerHeight);
+
+        }, false)
 
         function onResize() {
             arToolkitSource.onResizeElement()
@@ -253,27 +261,6 @@
                         start = firstItem[3];
                         end = firstItem[4];
 
-                        for (var i = 0; i < doubleVis.length; i++) {
-
-                            testOne = doubleVis[i][0];
-                            testTwo = doubleVis[i][1];
-
-                            if ((testOne == firstItem[3] && testTwo == firstItem[4]) || (testOne == firstItem[4] && testTwo == firstItem[3])) {
-                                doubleMatch = doubleVis[i];
-
-                                for (var j = 2; j < doubleMatch.length; j++) {
-                                    testIndex = j - 2;
-
-                                    doubleEmptyRows[testIndex][0].nodeValue = doubleMatch[j][0];
-                                    doubleEmptyRows[testIndex][1].nodeValue = doubleMatch[j][1];
-                                    doubleEmptyRows[testIndex][2].nodeValue = doubleMatch[j][2];
-
-                                }
-
-                            }
-
-                        }
-
                     }
 
                 }
@@ -292,48 +279,21 @@
 
         }
 
-        function appendActionOne(firstItem, direction) {
-            var itemRow = document.createElement("TR");
+        function genArrOne(direction, ip, action, time) {
+            var data = [];
+            data.push(direction);
+            data.push(ip);
+            data.push(action);
+            data.push(time);
 
-            var directionCell = document.createElement("TD");
-            var directionText;
-            if (direction == 1) {
-                directionText = document.createTextNode("Inbound");
-
-            } else if (direction == 0) {
-                directionText = document.createTextNode("Outbound");
-
-            }
-            directionCell.appendChild(directionText);
-            itemRow.appendChild(directionCell);
-            setColour(directionCell, null);
-
-            var ipCell = document.createElement("TD");
-            var ipText = document.createTextNode(firstItem[7]);
-            ipCell.appendChild(ipText);
-            itemRow.appendChild(ipCell);
-            setColour(ipCell, null);
-
-            var actCell = document.createElement("TD");
-            var actText = document.createTextNode(firstItem[2]);
-            actCell.appendChild(actText);
-            itemRow.appendChild(actCell);
-            setColour(actCell, null);
-
-            var timeCell = document.createElement("TD");
-            var timeText = document.createTextNode(firstItem[5]);
-            timeCell.appendChild(timeText);
-            itemRow.appendChild(timeCell);
-            setColour(timeCell, null);
-
-            singleTable.appendChild(itemRow);
-
+            return data;
         }
 
-        function pushToQueue(type, begin, finish, source, dateTime) {
+        function queueElement(type, begin, finish) {
             var newgeo;
             var newmat;
             var newText;
+            var newData = [];
 
             if (type == 1) {
 
@@ -456,23 +416,13 @@
                 newText = "Error";
 
             }
-            queue.push([newgeo, newmat, newText, begin, finish]);
 
-            for (var i = 0; i < doubleVis.length; i++) {
-                testOne = doubleVis[i][0];
-                testTwo = doubleVis[i][1];
-                if ((testOne == begin && testTwo == finish) || (testOne == finish && testTwo == begin)) {
-
-                    doubleData = genArrTwo(newText, dateTime, source);
-
-                    if (doubleVis[i].length == 5) {
-                        doubleVis[i].splice(2, 1);
-                    }
-
-                    doubleVis[i].push(doubleData);
-
-                }
-            }
+            newData.push(newgeo);
+            newData.push(newmat);
+            newData.push(newText);
+            newData.push(begin);
+            newData.push(finish);
+            return newData;
 
         }
 
@@ -766,6 +716,8 @@
 
             }
 
+            return group;
+
         }
 
         //UPon Detection of one marker
@@ -790,6 +742,8 @@
             textNodeArr[0].nodeValue = text;
             textNodeArr[1].nodeValue = getIp(barcode);
             textNodeArr[2].nodeValue = getHost(barcode);
+
+            return marker;
 
         }
 
@@ -831,10 +785,12 @@
             rowHeaders.appendChild(dateHead);
             setColour(dateHead, null);
 
+            doubleEmpty(singleTable);
+
         }
-        
-        function createDouble(){
-          
+
+        function createDouble() {
+
             queueDiv.style.width = '100px';
             queueDiv.style.height = '100px';
             queueDiv.style.visibility = "hidden";
@@ -860,8 +816,8 @@
             setColour(actionHead, null);
             setColour(dateHead, null);
             setColour(sourceHead, null);
-            doubleEmpty();
-          
+            doubleEmpty(queueTable);
+
         }
 
         function emptyRow(table) {
@@ -883,46 +839,83 @@
 
         }
 
-        function doubleEmpty() {
+        function doubleEmpty(table) {
+            var noOfCells, emptyCon;
 
+            if (table == queueTable) {
+                noOfCells = 3;
+                emptyCon = doubleEmptyRows;
+            } else if (table == singleTable) {
+                noOfCells = 4;
+                emptyCon = singleEmptyRows;
+            }
             for (var i = 0; i < 3; i++) {
                 var itemRow = document.createElement("TR");
-                var actCell = document.createElement("TD");
-                var timeCell = document.createElement("TD");
-                var teamCell = document.createElement("TD");
-
-                itemRow.appendChild(actCell);
-                itemRow.appendChild(timeCell);
-                itemRow.appendChild(teamCell);
-
-                var actNode = document.createTextNode(" ");
-                actCell.appendChild(actNode);
-                var timeNode = document.createTextNode(" ");
-                timeCell.appendChild(timeNode);
-                var teamNode = document.createTextNode(" ");
-                teamCell.appendChild(teamNode);
-
-                queueTable.appendChild(itemRow);
-
-                setColour(actCell, null);
-                setColour(timeCell, null);
-                setColour(teamCell, null);
-
                 var rowArr = [];
-                rowArr.push(actNode);
-                rowArr.push(timeNode);
-                rowArr.push(teamNode);
 
-                doubleEmptyRows.push(rowArr);
+                for (var j = 0; j < noOfCells; j++) {
+                    var cell = document.createElement("TD");
+                    itemRow.appendChild(cell);
+                    var node = document.createTextNode(" ");
+                    cell.appendChild(node);
+                    setColour(cell, null);
+                    rowArr.push(node);
+
+                }
+                table.appendChild(itemRow);
+                emptyCon.push(rowArr);
 
             }
         }
 
-        
-        ;(function() {
-            ///Section: Queue Table
+         function singleEmptyPush(group, dateTime, action, ip, direction) {
+
+            for (var i = 0; i < singleVis.length; i++) {
+                testThree = singleVis[i][0];
+
+                if (testThree == group) {
+                    singleData = genArrOne(direction, ip, action, dateTime);
+                    console.log(singleData);
+
+                    if (singleVis[i].length == 4) {
+                        singleVis[i].splice(1, 1);
+                    }
+
+                    singleVis[i].push(singleData);
+                }
+
+            }
+
+        }
+
+        function singleEmptyPop(group) {
+
+            for (var i = 0; i < singleVis.length; i++) {
+
+                grpThree = singleVis[i][0];
+
+                if (grpThree == group) {
+
+                    singleMatch = singleVis[i];
+                    for (var j = 1; j < singleMatch.length; j++) {
+                        oneIndex = j - 1;
+
+                        singleEmptyRows[oneIndex][0].nodeValue = singleMatch[j][0];
+                        singleEmptyRows[oneIndex][1].nodeValue = singleMatch[j][1];
+                        singleEmptyRows[oneIndex][2].nodeValue = singleMatch[j][2];
+                        singleEmptyRows[oneIndex][3].nodeValue = singleMatch[j][3];
+
+                    }
+
+                }
+
+            }
+        }
+      ;(function() {
+            ///Section: CSS3D - One Marker
             createDouble();
-         
+            createSingle();
+
             /// Section: generate Markers (HardCode)
             scene.add(marker3);
             controls3 = new THREEx.ArMarkerControls(arToolkitContext, marker3, {
@@ -959,7 +952,8 @@
 
         })()
 
-        
+       
+      
        ;(function() {
 
             ///Section: Socket.io stuff
@@ -976,15 +970,38 @@
                     var begin = getGrp(srcVal);
                     var finish = getGrp(destVal);
 
-                    var teamValue;
+                    var teamValue, element;
                     if (srcTeam == 0) {
                         teamValue = blueText;
                     } else {
                         teamValue = redText;
                     }
 
+                    element = queueElement(sphere.o.actionType, begin, finish);
+
+                    for (var i = 0; i < doubleVis.length; i++) {
+                        testOne = doubleVis[i][0];
+                        testTwo = doubleVis[i][1];
+                        if ((testOne == begin && testTwo == finish) || (testOne == finish && testTwo == begin)) {
+
+                            doubleData = genArrTwo(element[2], sphere.o.dateTime, teamValue);
+
+                            if (doubleVis[i].length == 5) {
+                                doubleVis[i].splice(2, 1);
+                            }
+
+                            doubleVis[i].push(doubleData);
+
+                        }
+                    }
+
+                    singleEmptyPush(begin, sphere.o.dateTime, element[2], destSph, "Outbound");
+                    singleEmptyPush(finish, sphere.o.dateTime, element[2], srcSph, "Inbound");
+
                     if (begin.visible === true && finish.visible === true) {
-                        pushToQueue(sphere.o.actionType, begin, finish, teamValue, sphere.o.dateTime);
+
+                        queue.push(element);
+
                     }
 
                     previousType = sphere.o.actionType;
@@ -1018,9 +1035,6 @@
                 sphereZone.add(textMesh);
             });
 
-            ///Section: CSS3D - One Marker
-            createSingle();
-
             /// Section: SphereZone
             scene.add(sphereZone);
 
@@ -1040,9 +1054,29 @@
 
                     ///Section: CSS3D - Two Markers (HardCode)
                     if (visibleT == true) {
-                        appendData(marker3);
-                        appendData(marker5);
+                        groupOne = appendData(marker3);
+                        groupTwo = appendData(marker5);
                         twoPosVis();
+
+                        for (var i = 0; i < doubleVis.length; i++) {
+
+                            grpOne = doubleVis[i][0];
+                            grpTwo = doubleVis[i][1];
+
+                            if ((grpOne == groupOne && grpTwo == groupTwo) || (grpOne == groupTwo && grpTwo == groupOne)) {
+                                doubleMatch = doubleVis[i];
+                                for (var j = 2; j < doubleMatch.length; j++) {
+                                    twoIndex = j - 2;
+
+                                    doubleEmptyRows[twoIndex][0].nodeValue = doubleMatch[j][0];
+                                    doubleEmptyRows[twoIndex][1].nodeValue = doubleMatch[j][1];
+                                    doubleEmptyRows[twoIndex][2].nodeValue = doubleMatch[j][2];
+
+                                }
+
+                            }
+
+                        }
                     } else {
                         hideTable(queueDiv, queueObj);
                     }
@@ -1078,7 +1112,9 @@
 
                     if (visibleT == true) {
                         onePosVis(marker3);
-                        fillElements(marker3);
+                        groupThree = fillElements(marker3);
+                        singleEmptyPop(groupThree);
+
                     } else {
                         hideTable(singleDiv, singleObj);
                     }
@@ -1091,7 +1127,8 @@
 
                     if (visibleT == true) {
                         onePosVis(marker5);
-                        fillElements(marker5);
+                        groupThree = fillElements(marker5);
+                        singleEmptyPop(groupThree);
                     } else {
                         hideTable(singleDiv, singleObj);
                     }

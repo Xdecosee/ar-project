@@ -28,17 +28,19 @@
 
     <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
     <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/renderers/CSS3DRenderer.js"></script>
+    <script src="https://rawgit.com/jeromeetienne/threex.windowresize/master/threex.windowresize.js"></script>
     <script>
         ///Section: Variables
         //Variables - Important Variables
         var onRenderFcts = [];
         var scene = new THREE.Scene();
-        var camera = new THREE.Camera();
+         
         var renderer = new THREE.WebGLRenderer({
             antialias: true,
             alpha: true
         });
         var lastTimeMsec = null;
+        var camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);	
 
         //Variables - Crow Logo
         var crowMap = new THREE.TextureLoader().load("https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fcrow-logo.png?1508448491892");
@@ -124,6 +126,7 @@
         var doubleVis = [];
         var testOne, testTwo, doubleData, doubleMatch, grpOne, grpTwo, twoIndex, groupOne, groupTwo;
         var firstMarker, secondMarker, index;
+         var midAdd = [];
 
         //Variables - Machine Info (One Marker)
 
@@ -163,6 +166,7 @@
             // renderer.domElement.style.top = '0px'
         renderer.domElement.style.left = '0px';
         document.body.appendChild(renderer.domElement);
+        var winResize	= new THREEx.WindowResize(renderer, camera)
 
         ///Section: Css3drenderer
 
@@ -171,6 +175,7 @@
         //renderer2.domElement.style.top = 0;
         renderer.domElement.style.left = '0px';
         document.body.appendChild(renderer2.domElement);
+        var winResize	= new THREEx.WindowResize(renderer2, camera)
 
         //Actually no need trackball controls 
         // controls = new THREE.TrackballControls(camera, renderer.domElement);
@@ -185,12 +190,8 @@
         })
         window.addEventListener('resize', function() {
             onResize()
-                //  camera.aspect = window.innerWidth / window.innerHeight;
-                //camera.updateProjectionMatrix();
-                //  renderer.setSize( window.innerWidth, window.innerHeight );
-                // renderer2.setSize(window.innerWidth,window.innerHeight);
-
-        }, false)
+               
+        })
 
         function onResize() {
             arToolkitSource.onResizeElement()
@@ -252,7 +253,8 @@
                     sphere.visible = true;
 
                     if (firstItem[3].visible === true && firstItem[4].visible === true) {
-
+                    
+                     
                         loader = new THREE.FontLoader().load(textUrl, function(font) {
                             loadText(firstItem[2], firstItem[1], font);
                         });
@@ -489,7 +491,7 @@
             );
 
         };
-
+      
         function redPointer(group) {
 
             var redLight = new THREE.DirectionalLight(0x444444);
@@ -748,8 +750,8 @@
         function createSingle() {
 
             singleDiv.appendChild(singleTable);
-            singleDiv.style.width = '100px';
-            singleDiv.style.height = '100px';
+            singleDiv.style.width = '150px';
+            singleDiv.style.height = '150px';
             singleDiv.style.visibility = "hidden";
             singleObj.scale.set(0.01, 0.01, 0.01);
             scene2.add(singleObj);
@@ -789,8 +791,8 @@
 
         function createDouble() {
 
-            queueDiv.style.width = '100px';
-            queueDiv.style.height = '100px';
+            queueDiv.style.width = '150px';
+            queueDiv.style.height = '150px';
             queueDiv.style.visibility = "hidden";
             queueDiv.appendChild(queueTable);
             queueObj.scale.set(0.01, 0.01, 0.01);
@@ -908,6 +910,19 @@
 
             }
         }
+               /*     var multiPaths = [];
+        function createPaths(){
+            
+
+            var a = new THREE.Vector3( 0, 0, 0 );
+            var quadpath = new THREE.QuadraticBezierCurve3(a,a,a);
+            var
+                  
+          
+          
+          
+          
+        }*/
       
       ;(function() {
             ///Section: CSS3D - One Marker
@@ -949,11 +964,10 @@
             }
 
         })()
-
+           
        
-      
        ;(function() {
-
+            
             ///Section: Socket.io stuff
             socket.on('action', function(sphere) {
                 if (sphere.o.actionType != previousType) {
@@ -974,7 +988,8 @@
                     } else {
                         teamValue = redText;
                     }
-
+                    
+                  
                     element = queueElement(sphere.o.actionType, begin, finish);
 
                     for (var i = 0; i < doubleVis.length; i++) {
@@ -997,7 +1012,7 @@
                     singleEmptyPush(finish, sphere.o.dateTime, element[2], srcSph, "Inbound");
 
                     if (begin.visible === true && finish.visible === true) {
-
+                      
                         queue.push(element);
 
                     }
@@ -1044,7 +1059,7 @@
 
                     ///Section: Update Midpoint Value
                     midpoint.addVectors(marker3.position, marker5.position).multiplyScalar(1 / 2)
-                    midpoint.y += 1;
+                     midpoint.y += 1;
 
                     ///Section: CROW LOGO
                     crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
@@ -1087,6 +1102,8 @@
                         end.position
 
                     );
+                  
+                   
                     curvePoints = path.getPoints(numPoints);
                     curveLineGeo = curveLine.geometry;
                     for (var i = 0; i < curvePoints.length; i++) {

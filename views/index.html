@@ -68,16 +68,6 @@
         var up = new THREE.Vector3(0, 1, 0);
         var numPoints = 50;
 
-        //Variables - Curve Line (Derived from Curve Path)
-        var curveLineMat = new THREE.LineBasicMaterial({
-            color: 0x000000,
-            transparent: true,
-            opacity: 0.0
-
-        });
-        var curveLineGeo = new THREE.Geometry();
-        var curveLine = new THREE.Line(curveLineGeo, curveLineMat);
-
         //Variables - AR Markers and their Pointers
         var controls3, controls5;
         var marker3 = new THREE.Group;
@@ -129,24 +119,20 @@
          var midAdd = [];
 
         //Variables - Machine Info (One Marker)
-
         var singleElementsArr = [];
         var textNodeArr = [];
         var singleVis = [];
         var singleEmptyRows = [];
         var testThree, singleData, singleMatch, grpThree, oneIndex, groupThree;
 
-        // renderer.domElement.style.top = '0px'
-        //  renderer.domElement.style.left = '0px';
+      
         guiDiv.style.position = 'absolute';
-        // guiDiv.style.left = '0px';
         guiDiv.style.zIndex = 10;
         guiDiv.style.top = '0px'
         document.body.appendChild(guiDiv);
         guiDiv.appendChild(gui.domElement);
 
         ///Section: Get Available Machines From DB
-
         $(function() {
 
             $.get('/machines', function(machines) {
@@ -163,22 +149,17 @@
         renderer.setClearColor(new THREE.Color('lightgrey'), 0)
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.domElement.style.position = 'absolute'
-            // renderer.domElement.style.top = '0px'
         renderer.domElement.style.left = '0px';
         document.body.appendChild(renderer.domElement);
         var winResize	= new THREEx.WindowResize(renderer, camera)
 
         ///Section: Css3drenderer
-
         renderer2.setSize(window.innerWidth, window.innerHeight);
         renderer2.domElement.style.position = 'absolute';
-        //renderer2.domElement.style.top = 0;
         renderer.domElement.style.left = '0px';
         document.body.appendChild(renderer2.domElement);
         var winResize	= new THREEx.WindowResize(renderer2, camera)
 
-        //Actually no need trackball controls 
-        // controls = new THREE.TrackballControls(camera, renderer.domElement);
         scene.add(camera);
 
         ///Section: ARTOOLKITSOURCE
@@ -220,7 +201,6 @@
         var FizzyText = function() {
             this.Info = false;
         };
-
         var text = new FizzyText();
         var controls = gui.add(text, 'Info').name('More Info').listen().onChange(function(newValue) {
 
@@ -868,7 +848,7 @@
             }
         }
 
-         function singleEmptyPush(group, dateTime, action, ip, direction) {
+        function singleEmptyPush(group, dateTime, action, ip, direction) {
 
             for (var i = 0; i < singleVis.length; i++) {
                 testThree = singleVis[i][0];
@@ -910,20 +890,7 @@
 
             }
         }
-               /*     var multiPaths = [];
-        function createPaths(){
-            
-
-            var a = new THREE.Vector3( 0, 0, 0 );
-            var quadpath = new THREE.QuadraticBezierCurve3(a,a,a);
-            var
-                  
-          
-          
-          
-          
-        }*/
-      
+              
       ;(function() {
             ///Section: CSS3D - One Marker
             createDouble();
@@ -1059,7 +1026,7 @@
 
                     ///Section: Update Midpoint Value
                     midpoint.addVectors(marker3.position, marker5.position).multiplyScalar(1 / 2)
-                     midpoint.y += 1;
+                    midpoint.y += 1;
 
                     ///Section: CROW LOGO
                     crowLogo.position.set(midpoint.x, midpoint.y, midpoint.z);
@@ -1102,15 +1069,6 @@
                         end.position
 
                     );
-                  
-                   
-                    curvePoints = path.getPoints(numPoints);
-                    curveLineGeo = curveLine.geometry;
-                    for (var i = 0; i < curvePoints.length; i++) {
-                        curveLineGeo.vertices[i] = curvePoints[i];
-
-                    }
-                    curveLineGeo.verticesNeedUpdate = true;
 
                     ///Section: Action Type Text
                     textMesh.geometry.center();
@@ -1118,7 +1076,6 @@
                     textMesh.position.set(midpoint.x, midpoint.y, midpoint.z);
 
                     ///Section: SphereZone
-                    sphereZone.add(curveLine);
                     sphereZone.add(crowLogo);
                     sphereZone.visible = true;
 
@@ -1172,8 +1129,6 @@
 
         ///Section: Run the rendering loop
         requestAnimationFrame(function animate(nowMsec) {
-
-            //  controls.update();
             renderer2.render(scene2, camera);
             requestAnimationFrame(animate);
             lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60

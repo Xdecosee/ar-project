@@ -24,7 +24,7 @@
 
 </head>
 
-<body style="margin : 0px; overflow: hidden; font-family: Monospace;">
+<body style="margin : 0px; overflow: hidden; font-family: Monospace;" onload="threadsLoad()">
 
     <script src="https://rawgit.com/socketio/socket.io-client/master/dist/socket.io.js"></script>
     <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/renderers/CSS3DRenderer.js"></script>
@@ -62,11 +62,9 @@
         var textCont = new THREE.Group;
 
         //Variables - Curve Path
-        var path, counter = 0;
         var tangent = new THREE.Vector3();
         var axis = new THREE.Vector3();
         var up = new THREE.Vector3(0, 1, 0);
-        var numPoints = 50;
 
         //Variables - AR Markers and their Pointers
         var controls3, controls5;
@@ -74,7 +72,7 @@
         var marker5 = new THREE.Group;
         var midpoint = new THREE.Vector3();
         var manager = new THREE.LoadingManager();
-        var portalUrl = ' https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fportal.json?1509609972673';
+        var portalUrl = 'https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fplane-with-holes.json?1510708506074';
 
         //Variables - View
         var sphereZone = new THREE.Group;
@@ -82,9 +80,6 @@
         var mInfoZone = new THREE.Group;
 
         //Variables - Display of Spheres(Attack/Defense)
-        var sphere;
-        var queue = [];
-        var firstItem = [];
         var defaultGeo = new THREE.SphereGeometry(0.1, 0.64, 0.64);
         var defaultMat = new THREE.MeshBasicMaterial({
             color: 0xFFFFFF
@@ -116,7 +111,7 @@
         var doubleVis = [];
         var testOne, testTwo, doubleData, doubleMatch, grpOne, grpTwo, twoIndex, groupOne, groupTwo;
         var firstMarker, secondMarker, index;
-         var midAdd = [];
+        var midAdd = [];
 
         //Variables - Machine Info (One Marker)
         var singleElementsArr = [];
@@ -125,7 +120,14 @@
         var singleEmptyRows = [];
         var testThree, singleData, singleMatch, grpThree, oneIndex, groupThree;
 
-      
+        //Variables - MultiPaths
+        var pathVar = [];
+        var counter1 = 0;
+        var counter2 = 0;
+        var counter3 = 0;
+        var availPath = 0 ;  
+        var thread1, thread2, thread3,pathMaxIndex, selectedPath;
+    
         guiDiv.style.position = 'absolute';
         guiDiv.style.zIndex = 10;
         guiDiv.style.top = '0px'
@@ -221,34 +223,6 @@
         var singleObj = new THREE.CSS3DObject(singleDiv);
 
         ///Section: Sphere Queue
-        function popFromQueue() {
-
-            if (queue.length > 0) {
-                firstItem = queue[0];
-
-                if (sphere.visible == false) {
-                    sphere.geometry = firstItem[0];
-                    sphere.material = firstItem[1];
-                    queue.shift();
-                    sphere.visible = true;
-
-                    if (firstItem[3].visible === true && firstItem[4].visible === true) {
-                    
-                     
-                        loader = new THREE.FontLoader().load(textUrl, function(font) {
-                            loadText(firstItem[2], firstItem[1], font);
-                        });
-                        start = firstItem[3];
-                        end = firstItem[4];
-
-                    }
-
-                }
-
-            }
-
-        }
-
         function genArrTwo(newText, dateTime, source) {
 
             var data = [];
@@ -406,37 +380,7 @@
 
         }
 
-        ///Section: SPHERE MOVING ON CURVE
-        function moveSphere() {
-
-            if (sphere.visible == true) {
-
-                if (counter <= 1) {
-
-                    sphere.position.copy(path.getPointAt(counter));
-
-                    tangent = path.getTangentAt(counter).normalize();
-
-                    axis.crossVectors(up, tangent).normalize();
-
-                    var radians = Math.acos(up.dot(tangent));
-
-                    sphere.quaternion.setFromAxisAngle(axis, radians);
-
-                    counter += 0.005
-                } else {
-                    counter = 0;
-                    sphere.visible = false;
-                    loader = new THREE.FontLoader().load(textUrl, function(font) {
-                        loadText(textDef, textMat, font);
-                    });
-
-                }
-
-            }
-
-        }
-
+     
         ///Section: Pointers(Portals) For Blue & Red
         function bluePointer(group) {
 
@@ -449,7 +393,10 @@
                 function(obj) {
 
                     var newcolor = new THREE.MeshPhongMaterial({
-                        color: 0x3C3CFF
+                        color: 0x3C3CFF,
+                      polygonOffset: true,
+                     polygonOffsetFactor:-4,
+                      depthWrite:false
                     });
 
                     function paint(o3d) {
@@ -463,8 +410,8 @@
                     }
 
                     paint(obj);
-                    obj.rotation.set(0, 4, 0);
                     group.add(obj);
+                obj.scale.set(0.8,0.8,0.8);
                     blueLight.target = obj;
 
                 },
@@ -483,7 +430,10 @@
                 function(obj) {
 
                     var newcolor = new THREE.MeshPhongMaterial({
-                        color: 0xff0000
+                        color: 0xff0000,
+                       polygonOffset: true,
+                    polygonOffsetFactor:-4,
+                    depthWrite:false
                     });
 
                     function paint(o3d) {
@@ -497,8 +447,8 @@
                     }
 
                     paint(obj);
-                    obj.rotation.set(0, 4, 0);
                     group.add(obj);
+                   obj.scale.set(0.8,0.8,0.8);
                     redLight.target = obj;
 
                 },
@@ -890,6 +840,240 @@
 
             }
         }
+        
+  
+        function threadsLoad(){
+          
+                   thread1= setInterval(function(){
+                     
+                       moveSphere1(pathVar[0][0], pathVar[0][1]);
+                    }, 10);
+                    
+                   
+            
+              
+                   thread2 = setInterval(function(){
+                     moveSphere2(pathVar[1][0], pathVar[1][1]);
+                   }, 10);
+              
+          
+                    thread3 = setInterval(function(){
+              
+                 
+                     moveSphere3(pathVar[2][0], pathVar[2][1]);
+                   }, 10);
+       
+         
+        }
+      
+    
+           ///Section: SPHERE MOVING ON CURVE
+        function moveSphere1(path, sphere) {
+           
+            if (sphere.visible == true) {
+                 
+                if (counter1 <= 1) {
+
+                    sphere.position.copy(path.getPointAt(counter1));
+
+                    tangent = path.getTangentAt(counter1).normalize();
+
+                    axis.crossVectors(up, tangent).normalize();
+
+                    var radians = Math.acos(up.dot(tangent));
+
+                    sphere.quaternion.setFromAxisAngle(axis, radians);
+
+                    counter1 += 0.005
+                } else {
+                    counter1 = 0;
+                    sphere.visible = false;
+                    loader = new THREE.FontLoader().load(textUrl, function(font) {
+                        loadText(textDef, textMat, font);
+                    });
+
+                }
+
+            }
+
+        }
+
+      
+         ///Section: SPHERE MOVING ON CURVE
+        function moveSphere2(path, sphere) {
+            
+            if (sphere.visible == true) {
+                
+                if (counter2 <= 1) {
+
+                    sphere.position.copy(path.getPointAt(counter2));
+
+                    tangent = path.getTangentAt(counter2).normalize();
+
+                    axis.crossVectors(up, tangent).normalize();
+
+                    var radians = Math.acos(up.dot(tangent));
+
+                    sphere.quaternion.setFromAxisAngle(axis, radians);
+
+                    counter2 += 0.005
+  
+                } else {
+                    counter2 = 0;
+                    sphere.visible = false;
+                    loader = new THREE.FontLoader().load(textUrl, function(font) {
+                        loadText(textDef, textMat, font);
+                    });
+
+                }
+
+            }
+
+        }
+
+         ///Section: SPHERE MOVING ON CURVE
+        function moveSphere3(path, sphere) {
+           
+            if (sphere.visible == true) {
+                
+                if (counter3 <= 1) {
+
+                    sphere.position.copy(path.getPointAt(counter3));
+
+                    tangent = path.getTangentAt(counter3).normalize();
+
+                    axis.crossVectors(up, tangent).normalize();
+
+                    var radians = Math.acos(up.dot(tangent));
+
+                    sphere.quaternion.setFromAxisAngle(axis, radians);
+
+                    counter3 += 0.005
+                } else {
+                    counter3 = 0;
+                    sphere.visible = false;
+                    loader = new THREE.FontLoader().load(textUrl, function(font) {
+                        loadText(textDef, textMat, font);
+                    });
+
+                }
+
+            }
+
+        }
+
+        function popFromQueue() {
+          var firstItem, queue, sphere, startVector, endVector;
+          var midVector = new THREE.Vector3();
+          for(var i = 0; i < pathVar.length; i++){
+               
+              if(pathVar[i][2].length > 0 ){
+                
+         
+                queue = pathVar[i][2];
+                firstItem = queue[0];
+                sphere = pathVar[i][1];
+                path = pathVar[i][0];
+                val = pathVar[i][3];
+               
+                 midVector.addVectors(firstItem[3].position, firstItem[4].position).multiplyScalar(1 / 2);
+                  midVector.y += val;
+             
+                
+                if (sphere.visible == false) {
+                
+                  sphere.geometry = firstItem[0];
+                  sphere.material = firstItem[1];
+               
+               
+                
+                  if (firstItem[3].visible === true && firstItem[4].visible === true) {
+                       
+                    pathVar[i][0] = new THREE.QuadraticBezierCurve3(
+                         firstItem[3].position,
+                          midVector,
+                          firstItem[4].position
+                      );
+                  
+                    
+                    sphere.visible = true;
+                  
+                    loader = new THREE.FontLoader().load(textUrl, function(font) {
+                          loadText(firstItem[2], firstItem[1], font);
+                    });
+                  
+                    queue.shift();
+                  }
+                  
+                  
+                }
+                
+              }
+            
+          }
+
+              
+
+          
+
+      }
+
+        function initPathVar(){
+            
+            var el1 = createPathEl(1.9, 1);
+            var el2 = createPathEl(1.3, 2);
+            var el3 = createPathEl(0.6, 3);
+           
+            pathVar.push(el1);
+            pathVar.push(el2);
+            pathVar.push(el3);
+            
+        
+            pathMaxIndex = pathVar.length - 1;
+          
+          
+        }
+        function createPathEl(val, id){
+          
+            var el = [];
+            var path;
+            var newSphere = new THREE.Mesh(defaultGeo, defaultMat);
+            sphereZone.add(newSphere);
+            newSphere.visible = false;
+            var queue = [];
+            newSphere.scale.set(0.8,0.8,0.8);
+            el = [path, newSphere, queue, val];
+           
+            return el;
+          
+        }
+        
+          
+       
+        function getQueue(){
+          
+         
+          if(availPath > pathMaxIndex){
+        
+             availPath = 0;
+         
+          }
+          
+          selectedPath = availPath;
+          availPath++;
+          return pathVar[selectedPath][2];
+          
+        }
+      
+        function emptyQueue(){
+          
+          for(var i = 0 ; i < pathVar.length; i++){
+            
+            pathVar[i][2] = [];
+            
+          }
+          
+        }
               
       ;(function() {
             ///Section: CSS3D - One Marker
@@ -937,6 +1121,8 @@
             
             ///Section: Socket.io stuff
             socket.on('action', function(sphere) {
+                
+             
                 if (sphere.o.actionType != previousType) {
                     srcSph = sphere.o.src;
                     destSph = sphere.o.dest;
@@ -949,7 +1135,7 @@
                     var begin = getGrp(srcVal);
                     var finish = getGrp(destVal);
 
-                    var teamValue, element;
+                    var teamValue, element, queue;
                     if (srcTeam == 0) {
                         teamValue = blueText;
                     } else {
@@ -958,7 +1144,7 @@
                     
                   
                     element = queueElement(sphere.o.actionType, begin, finish);
-
+                   
                     for (var i = 0; i < doubleVis.length; i++) {
                         testOne = doubleVis[i][0];
                         testTwo = doubleVis[i][1];
@@ -977,10 +1163,13 @@
 
                     singleEmptyPush(begin, sphere.o.dateTime, element[2], destSph, "Outbound");
                     singleEmptyPush(finish, sphere.o.dateTime, element[2], srcSph, "Inbound");
-
+                    
+                    
                     if (begin.visible === true && finish.visible === true) {
-                      
+                        
+                        queue = getQueue();
                         queue.push(element);
+                        
 
                     }
 
@@ -993,11 +1182,8 @@
             crowLogo.scale.set(1, 0.40, 1);
 
             /// Section : SPHERE OBJ
-            sphere = new THREE.Mesh(defaultGeo, defaultMat);
-            sphereZone.add(sphere);
-            sphere.visible = false;
-            setInterval(moveSphere, 10);
-
+            initPathVar();
+         
             ///Section: Loading Action Type Text
             manager.onProgress = function(item, loaded, total) {
 
@@ -1061,15 +1247,7 @@
                         hideTable(queueDiv, queueObj);
                     }
                     hideTable(singleDiv, singleObj);
-
-                    ///Section: CURVE STUFF
-                    path = new THREE.QuadraticBezierCurve3(
-                        start.position,
-                        midpoint,
-                        end.position
-
-                    );
-
+                  
                     ///Section: Action Type Text
                     textMesh.geometry.center();
                     textMesh.scale.set(0.05, 0.05, 0.05);
@@ -1092,7 +1270,7 @@
                     }
 
                     sphereZone.visible = false;
-                    queue = [];
+                    emptyQueue();
                     hideTable(queueDiv, queueObj);
 
                 } else if (marker5.visible === true) {
@@ -1106,14 +1284,14 @@
                     }
 
                     sphereZone.visible = false;
-                    queue = [];
+                    emptyQueue();
                     hideTable(queueDiv, queueObj);
 
                     //No Markers Visible
                 } else {
 
                     sphereZone.visible = false;
-                    queue = [];
+                    emptyQueue();
                     hideTable(queueDiv, queueObj);
                     hideTable(singleDiv, singleObj);
 

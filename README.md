@@ -1,5 +1,12 @@
 # Credits
+* Augmented Reality
+  
+  * [AR.js](https://github.com/jeromeetienne/AR.js)
+  
+* 3D Modelling
 
+  * [THREE.js](https://threejs.org/)
+  
 *  Database
     * [MongoDB Atlas](https://www.mongodb.com/cloud/atlas): Providing Database in cloud _(Note: I used the free tier)_ 
 
@@ -16,8 +23,23 @@
   * [Express](https://www.npmjs.com/package/express)
 
   * [MongoDB](https://www.npmjs.com/package/mongodb)
+  
+* User Controls
+  
+  * [dat.GUI](https://github.com/dataarts/dat.gui)
 
 # Other Resources
 
-* [Querying Oplog](https://www.compose.com/articles/the-mongodb-oplog-and-node-js/): Help to retrieve real-time data from database by listening for insertions (Code used in server.js)
+* Server.js
 
+  * [Querying Oplog](https://www.compose.com/articles/the-mongodb-oplog-and-node-js/): Help to retrieve real-time data from database by listening for insertions (Code used in server.js)
+
+* index.html
+
+  * [Window Resize](https://github.com/jeromeetienne/threex.windowresize)
+
+  * [Animation between two AR Markers](https://github.com/jeromeetienne/AR.js/blob/master/three.js/examples/measure-it.html)
+
+  * [3D model of Box with hole](https://clara.io/view/053f6cc3-d593-429e-8938-0ded52dfffa6)
+
+  * [dat.GUI checkbox changes event listener](https://davidwalsh.name/dat-gui)

@@ -1,4 +1,3 @@
-
 /// Variables - Socket.IO, MongoDB, Express
 var express = require('express');
 var app = express();
@@ -8,13 +7,12 @@ var MongoDB = require('mongodb');
 
 ///Variables - Connection strings for MongoDB Atlas Databases
 var log = process.env.LOG;
-var oplogurl = 'mongodb://'+ log + '@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,' +
+var oplogurl = 'mongodb://' + log + '@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,' +
     'arproject-shard-00-02-cjsdl.mongodb.net:27017/local?ssl=true&replicaSet=ARPROJECT-shard-0&authSource=admin';
-var arurl = 'mongodb://'+ log + '@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,' +
+var arurl = 'mongodb://' + log + '@arproject-shard-00-00-cjsdl.mongodb.net:27017,arproject-shard-00-01-cjsdl.mongodb.net:27017,' +
     'arproject-shard-00-02-cjsdl.mongodb.net:27017/ARDB?ssl=true&replicaSet=ARPROJECT-shard-0&authSource=admin';
 
 var machines = [];
-
 
 ///Section: load index.html
 app.use(express.static('public'));
@@ -25,18 +23,16 @@ http.listen(3000, function() {
     console.log('listening on *:3000');
 });
 
-
 ///Section: Retrieve Real-time Data
 io.on('connection', function(socket) {
-  
+
     //User Connected to Socket
     console.log('a user connected');
-    
+
     //User Disconnect from Socket
     socket.on('disconnect', function() {
         console.log('user disconnected');
     });
-
 
     //Connect to Oplog Collection and listen for insertion of data(actions)
     MongoDB.MongoClient.connect(oplogurl, function(err, db) {
@@ -44,9 +40,9 @@ io.on('connection', function(socket) {
         if (err) {
             console.log("conn error");
         }
-    
+
         db.collection('oplog.rs', function(err, oplog) {
-          
+
             oplog.find({}, {
                 ts: 1
             }).sort({
@@ -54,7 +50,7 @@ io.on('connection', function(socket) {
             }).limit(1).toArray(function(err, data) {
                 var lastOplogTime = data[0].ts;
                 var queryForTime;
-              
+
                 if (lastOplogTime) {
                     queryForTime = {
                         $gt: lastOplogTime
@@ -73,47 +69,42 @@ io.on('connection', function(socket) {
                     oplogReplay: true,
                     numberOfRetries: -1
                 });
-              
+
                 var stream = cursor.stream();
                 stream.on('data', function(oplogdoc) {
-                     if(oplogdoc.ns == 'ARDB.ARaction'){
-                       socket.emit('action', oplogdoc);
-                     }
-                    
-                    
+                    if (oplogdoc.ns == 'ARDB.ARaction') {
+                        socket.emit('action', oplogdoc);
+                    }
+
                 });
             });
         });
-        
+
     });
 
 });
 
-
 ///Section: Retrieve a list of machines from database 
 MongoDB.MongoClient.connect(arurl, function(err, db) {
 
-      if (err) {
-          console.log("conn error");
-      }
-      db.collection("ARmachine", function(err, machine) {
+    if (err) {
+        console.log("conn error");
+    }
+    db.collection("ARmachine", function(err, machine) {
         machine.find().toArray(function(err, result) {
-              if (err) {
-                  throw err;
-              } else {
-                  for (var i = 0; i < result.length; i++) {
-                      machines[i] = result[i];
-                  }
-          
-                 app.get("/machines", function(request, response) {
+            if (err) {
+                throw err;
+            } else {
+                for (var i = 0; i < result.length; i++) {
+                    machines[i] = result[i];
+                }
+
+                app.get("/machines", function(request, response) {
                     response.send(machines);
                 });
-             
-                
-              }
-          });
-      });
-     
 
-  });
+            }
+        });
+    });
 
+});

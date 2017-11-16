@@ -295,12 +295,10 @@
             markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
             redPointer(marker5);
 
-            /*
-            doubleVis is an array to hold different possible combinations of pairs of physical markers. 
-            singleVis is an array to hold a list of physical markers.
-
-            */
-
+            
+          //Section: DoubleVis & SingleVis
+          /* singleVis and doubleVis are arrays created to keep incoming data and group them
+          according to the markers that they belong to.*/
             for (var i = 0; i < markerVals.length; i++) {
                 var doubleArr = [];
                 var singleArr = [];
@@ -317,6 +315,7 @@
                 singleVis.push(singleArr);
             }
 
+        
             ///Section: Display Animation When Markers Visible
             /*Allow the application display the relevant animation according 
             to the number of physical markers within camera view*/
@@ -721,7 +720,7 @@
             pathMaxIndex = pathVar.length - 1;
 
         }
-        /*Purpose of val is value to increase the midpoints' y-axis coordinate(between two markers) later on
+        /*Purpose of val is value to increase the midpoints' y-value (between two markers) later on
         so that the three paths has different height in their midpoints*/
         function createPathEl(val) {
 
@@ -1099,8 +1098,9 @@
         function popFromQueue() {
             var firstItem, queue, sphere, startVector, endVector;
             var midVector = new THREE.Vector3();
+            
             for (var i = 0; i < pathVar.length; i++) {
-
+                //constantly check for new action data in the three queues
                 if (pathVar[i][2].length > 0) {
 
                     queue = pathVar[i][2];
@@ -1108,12 +1108,16 @@
                     sphere = pathVar[i][1];
                     path = pathVar[i][0];
                     val = pathVar[i][3];
-
+                    
+                    /*Sets the midpoint of the curve based on the middle point between both markers.
+                    All three curves will have different height as 'val' is added onto
+                    the y-value of the midpoint*/
                     midVector.addVectors(firstItem[3].position, firstItem[4].position).multiplyScalar(1 / 2);
                     midVector.y += val;
 
                     if (sphere.visible == false) {
-
+                        
+                        //Sets the colour to the sphere
                         sphere.geometry = firstItem[0];
                         sphere.material = firstItem[1];
 

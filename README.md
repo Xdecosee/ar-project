@@ -32,7 +32,7 @@
 
 * Server.js
 
-  * [Querying Oplog](https://www.compose.com/articles/the-mongodb-oplog-and-node-js/): Help to retrieve real-time data from database by listening for insertions (Code used in server.js)
+  * [Querying Oplog](https://www.compose.com/articles/the-mongodb-oplog-and-node-js/): Help to retrieve real-time data from database by listening for insertions 
 
 * index.html
 

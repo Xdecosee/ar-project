@@ -246,8 +246,13 @@
             createSingle();
 
             /// Section: Generate Markers (Hardcoded)
-            //Add markers controls to scene for detecting physical markers.
-            //Assign the relevant barcode values.
+            /*
+            Add markers controls to scene for detecting physical markers.
+            Assign relevant barcode values for application to identify the physical markers
+            THREE.Group is like a container. 
+            We assign a group to each marker to hold the 3D objects that is displayed on one marker.
+            */
+        
             scene.add(marker3);
             controls3 = new THREEx.ArMarkerControls(arToolkitContext, marker3, {
                 type: 'barcode',
@@ -265,6 +270,8 @@
             markerVals.push([controls5.parameters.barcodeValue, controls5.object3d]);
             redPointer(marker5);
 
+        
+            //Initialize
             for (var i = 0; i < markerVals.length; i++) {
                 var doubleArr = [];
                 var singleArr = [];
@@ -283,7 +290,7 @@
 
         })()
            
-         ;(function() {
+        ;(function() {
             
            ///Section: Socket.IO
              dataListener();
@@ -459,7 +466,7 @@
                     
                     if (begin.visible === true && finish.visible === true) {
                         
-                        queue = getQueue();
+                        queue = selectQueue();
                         queue.push(element);
                         
 
@@ -715,87 +722,7 @@
             textMesh.material = mat;
         }
 
-        ///Section: 'Getters'
-        function getVal(ip) {
-
-            for (var i = 0; i < machineArr.length; i++) {
-                if (ip == machineArr[i].ip) {
-                    return machineArr[i].value;
-                }
-            }
-
-        }
-
-        function getTeamVal(ip) {
-
-            for (var i = 0; i < machineArr.length; i++) {
-                if (ip == machineArr[i].ip) {
-                    return machineArr[i].team;
-                }
-            }
-
-        }
-
-        function getGrp(val) {
-
-            for (var i = 0; i < markerVals.length; i++) {
-
-                if (val == markerVals[i][0]) {
-                    return markerVals[i][1];
-
-                }
-
-            }
-
-        }
-
-        function getIp(barcode) {
-
-            for (var i = 0; i < machineArr.length; i++) {
-
-                if (barcode == machineArr[i].value) {
-
-                    return machineArr[i].ip;
-                }
-
-            }
-        }
-
-        function getHost(barcode) {
-            for (var i = 0; i < machineArr.length; i++) {
-
-                if (barcode == machineArr[i].value) {
-
-                    return machineArr[i].hostname;
-                }
-
-            }
-        }
-
-        function getTeam(barcode) {
-            for (var i = 0; i < machineArr.length; i++) {
-
-                if (barcode == machineArr[i].value) {
-
-                    return machineArr[i].team;
-                }
-
-            }
-        }
-
-        function getValue(grp) {
-
-            for (var i = 0; i < markerVals.length; i++) {
-
-                if (grp == markerVals[i][1]) {
-                    return markerVals[i][0];
-
-                }
-
-            }
-
-        }
-
+       
         ///Section: Div for Each Machine
         function setColour(element, team) {
 
@@ -1115,7 +1042,7 @@
         }
       
     
-           ///Section: SPHERE MOVING ON CURVE
+        ///Section: SPHERE MOVING ON CURVE
         function moveSphere1(path, sphere) {
            
             if (sphere.visible == true) {
@@ -1145,7 +1072,6 @@
             }
 
         }
-
       
          ///Section: SPHERE MOVING ON CURVE
         function moveSphere2(path, sphere) {
@@ -1281,6 +1207,7 @@
           
           
         }
+      
         function createPathEl(val, id){
           
             var el = [];
@@ -1295,10 +1222,8 @@
             return el;
           
         }
-        
-          
-       
-        function getQueue(){
+      
+        function selectQueue(){
           
          
           if(availPath > pathMaxIndex){
@@ -1324,7 +1249,96 @@
         }
               
      
-       
+      
+        ///Section: 'Getters'
+         //Get the barcode value assigned to the machine based on its ip address
+        function getVal(ip) {
+
+            for (var i = 0; i < machineArr.length; i++) {
+                if (ip == machineArr[i].ip) {
+                    return machineArr[i].value;
+                }
+            }
+
+        }
+      
+         //Get data on which team does the machine belongs to (Red/Blue) based on its ip address
+        function getTeamVal(ip) {
+
+            for (var i = 0; i < machineArr.length; i++) {
+                if (ip == machineArr[i].ip) {
+                    return machineArr[i].team;
+                }
+            }
+
+        }
+
+        // Get the THREE.Group that is assigned to a marker based on its barcode value
+        function getGrp(val) {
+
+            for (var i = 0; i < markerVals.length; i++) {
+
+                if (val == markerVals[i][0]) {
+                    return markerVals[i][1];
+
+                }
+
+            }
+
+        }
+      
+        // Get Machine's barcode value based on the THREE.Group assigned
+        function getValue(grp) {
+
+            for (var i = 0; i < markerVals.length; i++) {
+
+                if (grp == markerVals[i][1]) {
+                    return markerVals[i][0];
+
+                }
+
+            }
+
+        }
+        
+        // Get Machine's ip address based on the barcode assigned to it
+        function getIp(barcode) {
+
+            for (var i = 0; i < machineArr.length; i++) {
+
+                if (barcode == machineArr[i].value) {
+
+                    return machineArr[i].ip;
+                }
+
+            }
+        }
+        
+        // Get Machine's Hostname based on the barcode assigned to it
+        function getHost(barcode) {
+            for (var i = 0; i < machineArr.length; i++) {
+
+                if (barcode == machineArr[i].value) {
+
+                    return machineArr[i].hostname;
+                }
+
+            }
+        }
+
+        // Get Machine's team (Red/Blue) based on the barcode assigned to it
+        function getTeam(barcode) {
+            for (var i = 0; i < machineArr.length; i++) {
+
+                if (barcode == machineArr[i].value) {
+
+                    return machineArr[i].team;
+                }
+
+            }
+        }
+
+    
       
         /// Section: Push function to Render the scene
         onRenderFcts.push(function() {

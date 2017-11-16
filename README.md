@@ -47,3 +47,5 @@
   * [3D model of Box with hole](https://clara.io/view/053f6cc3-d593-429e-8938-0ded52dfffa6)
 
   * [dat.GUI checkbox changes event listener](https://davidwalsh.name/dat-gui)
+  
+  * [Object Moving on Line](http://jsfiddle.net/qGPTT/133/)

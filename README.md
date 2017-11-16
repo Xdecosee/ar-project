@@ -2,6 +2,30 @@
 # How it works
 # Limitations of this project
 # Action Types
+
+**Note:** I was only given a list of the types of attacks that participants have performed in the past years of the challenge. Hence for the defending actions, I decided to just call them as defense1, defense2 and defense3.
+
+| Attack Type    | Int    | Colour|
+| --------|---------|-------|
+| Normal  | 1 |Green|
+| Reconnaissance | 2 |Yellow|
+| SQL Injection | 3 |Orange|
+| Semantic URL Attack | 4 |Pink|
+| Command Injection | 5 |Purple|
+| Remote Code Execution | 6 |Light Blue|
+| URL Manipulation | 7 |Brown|
+| Privilege Escalation | 8 |Blue|
+| Directory Traversal Attack | 9 |Red|
+
+<br/>
+
+| Defense Type    | Int    | Colour|
+| --------|---------|-------|
+| defense1 | 10 |Dark Green|
+| defense2 | 11 |Gray|
+| defense3 | 12 |Light Pink|
+
+
 # Credits
 * Augmented Reality
   

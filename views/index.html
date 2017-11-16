@@ -215,6 +215,9 @@
         Note: Tables can be seen when markers within camera view */
         var FizzyText = function() {
             this.Info = false;
+            this.View = function(){
+              window.open("https://github.com/Xdecosee/ar-project");
+            }
         };
         var text = new FizzyText();
         var controls = gui.add(text, 'Info').name('More Info').listen().onChange(function(newValue) {
@@ -229,7 +232,7 @@
             }
 
         });
-
+        gui.add(text, 'View').name("View Source Code");
         
       ;(function() {
             ///Section: CSS3D - Create Tables

@@ -1,3 +1,7 @@
+# Introduction
+# How it works
+# Limitations of this project
+# Action Types
 # Credits
 * Augmented Reality
   

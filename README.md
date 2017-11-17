@@ -33,7 +33,7 @@ Access the AR application via a compatible browser (from Step 1) with this [link
 ![permissioncam.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/permissioncam.png)
 
 
-Point your webcam or phone camera to the AR Markers (from Step 2). If there are real-time data inserted into database, you can see coloured spheres moving from one marker to the other. Otherwise, you will only see the CROW Logo , red box and blue box. 
+Point your webcam or phone camera to the AR Markers (from Step 2). If there are real-time data inserted into database, you can see coloured spheres moving from one marker to the other. You will also be able to see the naming of the latest sphere moving out from the marker. Otherwise, you will only see the CROW Logo , red box and blue box. 
 
 **Example View on Laptop with Webcam (Chrome)**
 ![desktop.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/desktop.PNG)
@@ -44,7 +44,7 @@ Point your webcam or phone camera to the AR Markers (from Step 2). If there are 
 
 Note: Other data will be inserted into the database via other instances of the data insertion page or when other people load the page as well. Hence, other data fired from other instances of the page can also pop up in the AR application as well. 
 
-Select the checkbox "More info" to see ip address and hostname of the machines that the markers represent. If there are two markers in view, you can see the lastest three data inserted related to the two markers in view. If there is one marker in view, you can see the lastest three data inserted related to that one marker. 'Outbound' means that the machine is the source of the action. 'Inbound' means that the machine is the target of the action.
+Select the checkbox "More info" to see ip address and hostname of the machines that the markers represent. If there are two markers in view, you can see the lastest three data entries related to the two markers in view. If there is one marker in view, you can see the lastest three data entries related to that one marker. 'Outbound' means that the machine is the source of the action. 'Inbound' means that the machine is the target of the action.
 
 **Two Markers**
 ![doubletable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/doulbletable.PNG)
@@ -53,7 +53,6 @@ Select the checkbox "More info" to see ip address and hostname of the machines t
 ![redtable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/redtable.PNG)
 ![bluetable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/bluetable.PNG)
 
-# Limitations of this project
 # Action Types
 
 **Note:** I was only given a list of the types of attacks that participants have performed in the past years of the challenge. Hence for the defending actions, I decided to just call them as defense1, defense2 and defense3.
@@ -78,6 +77,53 @@ Select the checkbox "More info" to see ip address and hostname of the machines t
 | defense2 | 11 |Gray|
 | defense3 | 12 |Light Pink|
 
+# Limitations of this project
+
+There are certain limitations and challenges I faced while doing this project over three months. I was not able to solve certain problems. 
+
+* Free Tier of MongoDB Atlas has **limited storage space.**
+
+* Markers must be **always within camera view**. 
+
+  Hence, I wasn't able to further develop my project to generate the animation on multiple markers that are placed far apart from each other (since the machines will be far apart from each other). The current state of the project can only handle 2 markers within camera view at all times.
+  
+  **Add On:** I looked into other possible solutions (Vuforia/Wikitude/Markerless AR technology) and did not have the time to fully test them over the course of my school project.
+  
+  **Tip:** If you have two identical markers (e.g. two markers with the value of 3)in front of the camera, the application will not be able show the relevant animations (table and box). 
+
+* Some parts of the source code are **hardcoded**. 
+
+  E.g. To check for visibility of markers constantly, it requires you to state _if(marker.visible)===true_ for each marker. With regards to this particular issuee, I tried to implement a for loop function that constantly check for visibility of markers but the program gets very laggy. Have not tried implementing any function that works in the application background to poll for visibility of markers
+
+* There is a **program glitch**.In a very split second, the coloured sphere may appear at the destination marker before appearing the marker where it is suppose to start from before moving along the invisible curve path.
+
+* Animations are **not fully designed perfectly**. 
+
+  When there are changes to phone orientation, the sizes of the animation may become small or animation may become more pixelated. Web page height & width may be affected as well and may require to zoom in and out of the screen to see the animations.
+  
+  Spheres may be rendered and displayed behind boxes instead.
+  
+* **Application performance**
+
+  Application performance differs for different browsers on different devices. Rendered animation may be blurry , pixelated or laggy based on the browser and device used.
+  
+* **Rapid large amount of data**
+
+  Application is unable to update the action naming's quickly if there is large amounts of data inserted rapidly. Hence, the action naming may not be update correctly. 
+  
+* Data pulled into _index.html_ via jQuery **may not be the latest set of data** as may require refreshing of _server.js_.
+
+```
+$(function() {
+
+      $.get('/machines', function(machines) {
+          for (var i = 0; i < machines.length; i++) {
+              machineArr[i] = machines[i];
+          }
+      });
+
+});
+```
 
 # Credits
 * Augmented Reality

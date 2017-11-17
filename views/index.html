@@ -9,7 +9,7 @@
 
     <!-- SCRIPT: three.js library -->
     <script src="https://rawgit.com/mrdoob/three.js/dev/build/three.js"></script>
-    <script src="https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fthree.min.js?1508448492664"></script>
+    <script src="https://rawgit.com/mrdoob/three.js/dev/build/three.min.js"></script>
 
     <!-- SCRIPT: jsartookit -->
     <script src="https://rawgit.com/jeromeetienne/AR.js/master/three.js/vendor/jsartoolkit5/build/artoolkit.min.js"></script>
@@ -68,12 +68,12 @@
         var marker3 = new THREE.Group;
         var marker5 = new THREE.Group;
         var midpoint = new THREE.Vector3();
-        var portalUrl = 'https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fplane-with-holes.json?1510708506074';
+        var portalUrl = 'https://rawgit.com/Xdecosee/ar-data-insertion/master/resources/plane-with-holes.json';
         //Holds the animation(3D objs) that are displayed when markers are in camera view
         var sphereZone = new THREE.Group;
 
         //Variables - Crow Logo
-        var crowMap = new THREE.TextureLoader().load("https://cdn.glitch.com/64df24d4-c4fc-476b-9208-9c076af8be32%2Fcrow-logo.png?1508448491892");
+        var crowMap = new THREE.TextureLoader().load("https://rawgit.com/Xdecosee/ar-data-insertion/master/resources/crow-logo.png");
         var crowMaterial = new THREE.SpriteMaterial({
             map: crowMap,
             color: 0xffffff
@@ -82,7 +82,7 @@
 
         //Variables - Action Text
         var textMesh, loader, textGeo;
-        var textUrl = 'https://cdn.glitch.com/0a2baf12-9f45-4a89-9513-4cd98cd5ec2a%2Fhelvetiker_regular.typeface.json?1509508427145';
+        var textUrl = 'https://rawgit.com/mrdoob/three.js/dev/examples/fonts/helvetiker_regular.typeface.json';
         var textMat = new THREE.MeshBasicMaterial({
             color: 0xFFFFFF,
         });

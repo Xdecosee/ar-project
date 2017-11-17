@@ -1,5 +1,58 @@
 # Introduction
+
+This repository is part of my school project. My school project aims to research and develop an application to visualize the interactions between computer machines through Augmented Reality(AR) during an Attack and Defense Challenge. During the challenge, each individual will be assigned to a computer and all of them will split into two different teams (Red & Blue). Red Team plays the offense and conduct attacks against the Blue team. On the other hand, the Blue Team members will defend against any incoming attacks.
+
+I am tasked to develop an application that allow users(spectators/participants) to see the actions (attack/defense) conducted by each team through AR and 3D modelling. Each computer machine will have a physical AR Marker for machine identification. Users will load the AR application onto their phones and move around the room/lab where the Challenge is held. When an AR marker(barcode marker)is within the phone camera view, the application will check for the machine's identity based on the barcode value of the marker. After identifying the machine, the application will display out Real-Time actions (in the form of coloured spheres) that are conducted by/ targeted towards the machine.
+
 # How it works
+## 1. Get Compatible Browser
+
+The program runs in any browser with WebGL and WebRTC. I tested my application on iphone 5 Safari and on chrome on my laptop. For iphone users, you will be required to update to iOS 11. 
+
+## 2. Prepare AR Markers
+
+Get AR barcode markers that have the value of 5 and 3. You may get the marker for value of 5 [here](https://github.com/artoolkit/artoolkit5/blob/master/doc/patterns/Matrix%20code%203x3%20(72dpi)/5.png) and the marker for value of 3 [here](https://github.com/artoolkit/artoolkit5/blob/master/doc/patterns/Matrix%20code%203x3%20(72dpi)/3.png). I made a combination of both here:
+
+![mergedmarkers.jpg](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/mergedmarkers.JPG)
+
+## 3. Load up Data insertion page
+
+We will need to show real-time data on our AR application by inserting data into database. Hence, load the data insertion page first. You may access either at [here](https://projectadmin.glitch.me/) or [here](https://rawgit.com/Xdecosee/ar-data-insertion/master/index.html). You should see a page similar to this and the number under "Integer Added to Database" should be changing.
+
+![datainsertionpage.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/datainsertionpage.PNG)
+
+Each number represent an action. The classification of actions can be found [under 'Action Types'](https://github.com/Xdecosee/ar-project#action-types).
+
+
+## 4. Load AR application
+
+Access the AR application via a compatible browser (from Step 1) with this [link](https://projectar.glitch.me/). Click 'Allow' to allow application to access your camera on your device.
+
+![destopperm.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/desktopperm.png)
+
+![permissioncam.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/permissioncam.png)
+
+
+Point your webcam or phone camera to the AR Markers (from Step 2). If there are real-time data inserted into database, you can see coloured spheres moving from one marker to the other. Otherwise, you will only see the CROW Logo , red box and blue box. 
+
+**Example View on Laptop with Webcam (Chrome)**
+![desktop.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/desktop.PNG)
+
+**Example View on iphone 5 Safari (iOS 11)**
+![mobile.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/mobile.png)
+
+
+Note: Other data will be inserted into the database via other instances of the data insertion page or when other people load the page as well. Hence, other data fired from other instances of the page can also pop up in the AR application as well. 
+
+Select the checkbox "More info" to see ip address and hostname of the machines that the markers represent. If there are two markers in view, you can see the lastest three data inserted related to the two markers in view. If there is one marker in view, you can see the lastest three data inserted related to that one marker. 'Outbound' means that the machine is the source of the action. 'Inbound' means that the machine is the target of the action.
+
+**Two Markers**
+![doubletable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/doulbletable.PNG)
+
+**One Marker**
+![redtable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/redtable.PNG)
+![bluetable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/bluetable.PNG)
+
 # Limitations of this project
 # Action Types
 
@@ -73,3 +126,8 @@
   * [dat.GUI checkbox changes event listener](https://davidwalsh.name/dat-gui)
   
   * [Object Moving on Line](http://jsfiddle.net/qGPTT/133/)
+  
+  
+# Help
+
+If you have suggestions or have questions, you may post them under Issues Tab. 

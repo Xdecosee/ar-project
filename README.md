@@ -105,7 +105,7 @@ There are certain limitations and challenges I faced while doing this project ov
   
 * **Application performance**
 
-  Application performance differs for different browsers on different devices. Rendered animation may be blurry , pixelated or laggy based on the browser and device used.
+  Application performance differs for different browsers on different devices. Rendered animation may be blurry , pixelated or laggy based on the browser and device used. There can be heavy delays in updating data or action naming as well. 
   
 * **Rapid large amount of data**
 

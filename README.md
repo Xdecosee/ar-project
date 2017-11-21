@@ -50,7 +50,10 @@ Select the checkbox "More info" to see ip address and hostname of the machines t
 ![doubletable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/doulbletable.PNG)
 
 **One Marker**
+</br>
+_Marker with Barcode Value of 5_
 ![redtable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/redtable.PNG)
+_Marker with Barcode Value of 3_
 ![bluetable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/bluetable.PNG)
 
 # Action Types

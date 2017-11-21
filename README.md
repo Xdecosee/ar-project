@@ -42,9 +42,11 @@ Point your webcam or phone camera to the AR Markers (from Step 2). If there are 
 ![mobile.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/mobile.png)
 
 
-Note: Other data will be inserted into the database via other instances of the data insertion page or when other people load the page as well. Hence, other data fired from other instances of the page can also pop up in the AR application as well. 
+_Note:_ Other data will be inserted into the database via other instances of the data insertion page or when other people load the page as well. Hence, other data fired from other instances of the page can also pop up in the AR application as well. 
 
 Select the checkbox "More info" to see ip address and hostname of the machines that the markers represent. If there are two markers in view, you can see the lastest three data entries related to the two markers in view. If there is one marker in view, you can see the lastest three data entries related to that one marker. 'Outbound' means that the machine is the source of the action. 'Inbound' means that the machine is the target of the action.
+
+**Note:**Please do not leave the data insertion page running for many hours as the database used (MongoDB Atlas Free Tier) has limited storage space of 512MB. To stop inserting new data, close the data insertion page. 
 
 **Two Markers**
 ![doubletable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/doulbletable.PNG)

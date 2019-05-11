@@ -42,15 +42,20 @@ Point your webcam or phone camera to the AR Markers (from Step 2). If there are 
 ![mobile.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/mobile.png)
 
 
-Note: Other data will be inserted into the database via other instances of the data insertion page or when other people load the page as well. Hence, other data fired from other instances of the page can also pop up in the AR application as well. 
+_Note:_ Other data will be inserted into the database via other instances of the data insertion page or when other people load the page as well. Hence, other data fired from other instances of the page can also pop up in the AR application as well. For iOS, if you are loading both AR application and data insertion page as multiple web pages in your Safari App, you won’t be able to see the coloured spheres as data insertions will not be detected. Hence, load the data insertion page in another device.
 
 Select the checkbox "More info" to see ip address and hostname of the machines that the markers represent. If there are two markers in view, you can see the lastest three data entries related to the two markers in view. If there is one marker in view, you can see the lastest three data entries related to that one marker. 'Outbound' means that the machine is the source of the action. 'Inbound' means that the machine is the target of the action.
+
+**Note:** Please do not leave the data insertion page running for many hours as the database used (MongoDB Atlas Free Tier) has limited storage space of 512MB. To stop inserting new data, close the data insertion page. In addition, if you are not able to load any of the application, it might be possible that the Glitch Service is [down](http://status.glitch.com/).
 
 **Two Markers**
 ![doubletable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/doulbletable.PNG)
 
 **One Marker**
+<br/>
+_Marker with Barcode Value of 5_
 ![redtable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/redtable.PNG)
+_Marker with Barcode Value of 3_
 ![bluetable.png](https://raw.githubusercontent.com/Xdecosee/ar-data-insertion/master/resources/bluetable.PNG)
 
 # Action Types

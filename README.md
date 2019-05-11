@@ -1,7 +1,3 @@
-# [Update]
-
-7/9/2018: Mongodb has made changes to their documentation for Mongodb Stitch. Hence, the program may not run as expected. I will make the necessary changes to the code and update again.  
-
 # Introduction
 
 This repository is part of my school project. My school project aims to research and develop an application to visualize the interactions between computer machines through Augmented Reality(AR) during an Attack and Defense Challenge. During the challenge, each individual will be assigned to a computer and all of them will split into two different teams (Red & Blue). Red Team plays the offense and conduct attacks against the Blue team. On the other hand, the Blue Team members will defend against any incoming attacks.
